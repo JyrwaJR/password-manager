@@ -1,8 +1,14 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:password_manager/app_router/app_router.dart';
-import 'color/color_schemes.g.dart';
+import 'package:password_manager/export.dart';
+import 'package:password_manager/firebase_options.dart';
+import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -12,43 +18,60 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: lightColorScheme,
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: darkColorScheme,
-      ),
-      themeMode: ThemeMode.light,
-
-      // routes: AppRouter(),
-    );
-  }
-}
-
-class Home extends StatelessWidget {
-  const Home({Key? key}) : super(key: key);
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 2,
-        title: Text("Material Theme Builder"),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Update with your UI',
-            ),
-            ElevatedButton(onPressed: () {}, child: Text('click me'))
-          ],
+    return MultiProvider(
+      providers: [
+        Provider<FirebaseAuthService>(
+          create: (_) => FirebaseAuthService(),
         ),
+      ],
+      child: MaterialApp.router(
+        theme: ThemeData(
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: {
+              TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+            },
+          ),
+          useMaterial3: true,
+          colorScheme: lightColorScheme,
+          inputDecorationTheme: InputDecorationTheme(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              // material color
+              borderSide: BorderSide(
+                color: lightColorScheme.primary,
+              ),
+            ),
+            filled: true,
+            fillColor: lightColorScheme.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 20,
+              horizontal: 20,
+            ),
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: ButtonStyle(
+              foregroundColor:
+                  MaterialStateProperty.all<Color>(lightColorScheme.primary),
+            ),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ButtonStyle(
+              backgroundColor:
+                  MaterialStateProperty.all<Color>(lightColorScheme.primary),
+              foregroundColor:
+                  MaterialStateProperty.all<Color>(lightColorScheme.onPrimary),
+            ),
+          ),
+        ),
+
+        themeMode: ThemeMode.light,
+        debugShowCheckedModeBanner: false,
+        routerConfig: AppRouter().appRouter,
+        // change page transition
       ),
     );
   }
