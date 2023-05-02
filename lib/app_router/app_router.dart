@@ -7,22 +7,17 @@ class AppRouter {
   final auth = FirebaseAuth.instance;
   late final GoRouter appRouter = GoRouter(
     debugLogDiagnostics: true,
-    initialLocation: '/',
-    // change when user is login
-
+    initialLocation: '/local_auth',
     routes: [
       ShellRoute(
         builder: (context, state, child) {
           return ScaffoldWithBottomNavigationBar(
             child: WillPopScope(
               onWillPop: () async {
-                // la da back na ki wei ki navagation kan le it sha home screen
                 final goRouter = GoRouter.of(context);
                 if (goRouter.location == '/home') {
-                  // If we are already on the home screen, don't exit the app
                   return true;
                 } else {
-                  // Otherwise, navigate back to the home screen
                   context.go(context.namedLocation('home'));
                   return false;
                 }
@@ -58,9 +53,10 @@ class AppRouter {
         ],
       ),
       GoRoute(
-          path: '/local_auth',
-          name: 'local_auth',
-          builder: (context, state) => const LocalAuth()),
+        path: '/local_auth',
+        name: 'local_auth',
+        builder: (context, state) => const LocalAuth(),
+      ),
       GoRoute(
         path: '/',
         name: 'email',

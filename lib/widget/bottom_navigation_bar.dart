@@ -46,10 +46,8 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
         child: GNav(
-          // backgroundColor: primaryColor,
-          tabBackgroundColor: MaterialStateColor.resolveWith(
-            (states) => Colors.white,
-          ),
+          backgroundColor: Theme.of(context).secondaryHeaderColor,
+          tabBackgroundColor: Theme.of(context).cardColor,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           duration: const Duration(milliseconds: 300),

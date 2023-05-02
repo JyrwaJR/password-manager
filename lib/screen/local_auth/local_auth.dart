@@ -79,7 +79,7 @@ class _LocalAuthState extends State<LocalAuth> {
       }
 
       failedAttempts++;
-      _showErrorDialog(
+      _showDialog(
         context,
         'Authentication failed, Please try again',
       );
@@ -87,6 +87,34 @@ class _LocalAuthState extends State<LocalAuth> {
 
     SystemChannels.platform.invokeMethod('SystemNavigator.pop');
     return false;
+  }
+
+  void _showDialog(BuildContext context, String message) {
+    if (!mounted) {
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Oops!',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+              // Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showErrorDialog(BuildContext context, String message) {
@@ -107,7 +135,8 @@ class _LocalAuthState extends State<LocalAuth> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+              // Navigator.pop(context);
             },
             child: const Text('OK'),
           ),
@@ -118,42 +147,42 @@ class _LocalAuthState extends State<LocalAuth> {
 
   @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    // final uid = FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Security & Privacy'),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Center(
-            child: CircleAvatar(
-              radius: 100,
-              backgroundImage: NetworkImage(
-                "https://api.multiavatar.com/$uid Bond.png",
-              ),
-              onBackgroundImageError: (exception, stackTrace) => const Center(
-                child: Icon(Icons.error_outline),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              _checkBiometrics();
-            },
-            child: const Text('Authenticate with Biometrics'),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-            },
-            child: const Text('Close App'),
-          ),
-        ],
-      ),
-    );
+        // appBar: AppBar(
+        //   title: const Text('Security & Privacy'),
+        // ),
+        // body: Column(
+        //   mainAxisAlignment: MainAxisAlignment.center,
+        //   crossAxisAlignment: CrossAxisAlignment.center,
+        //   children: [
+        //     Center(
+        //       child: CircleAvatar(
+        //         radius: 100,
+        //         backgroundImage: NetworkImage(
+        //           "https://api.multiavatar.com/$uid Bond.png",
+        //         ),
+        //         onBackgroundImageError: (exception, stackTrace) => const Center(
+        //           child: Icon(Icons.error_outline),
+        //         ),
+        //       ),
+        //     ),
+        //     const SizedBox(height: 20),
+        //     ElevatedButton(
+        //       onPressed: () {
+        //         _checkBiometrics();
+        //       },
+        //       child: const Text('Authenticate with Biometrics'),
+        //     ),
+        //     const SizedBox(height: 20),
+        //     ElevatedButton(
+        //       onPressed: () {
+        //         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+        //       },
+        //       child: const Text('Close App'),
+        //     ),
+        //   ],
+        // ),
+        );
   }
 }
