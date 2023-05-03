@@ -117,7 +117,6 @@ class _PasswordState extends State<Password> {
                             });
                             if (_formKey.currentState!.validate()) {
                               try {
-                                //  sign in with email and password
                                 final result =
                                     await auth.signInWithEmailAndPassword(
                                         widget.email,
@@ -151,7 +150,13 @@ class _PasswordState extends State<Password> {
                               _isLoading = false;
                             });
                           },
-                    child: const Text('Continue')),
+                    child: _isLoading
+                        ? Center(
+                            child: CircularProgressIndicator(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                            ),
+                          )
+                        : const Text('Continue')),
               ),
               const SizedBox(
                 height: 30,
