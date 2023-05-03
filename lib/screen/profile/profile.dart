@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
@@ -13,87 +12,138 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   onAccountSettingsTap(value) {
     if (value == 'Profile') {
-      // TODO
+      context.goNamed('update profile',
+          queryParameters: <String, String>{'uid': widget.uid});
     } else if (value == 'Account Settings') {
-      // TODO
+      context.goNamed('account settings',
+          queryParameters: <String, String>{'uid': widget.uid});
     } else if (value == 'Change Password') {
-      // TODO
+      context.goNamed('change password',
+          queryParameters: <String, String>{'uid': widget.uid});
     } else if (value == 'Master-Key') {
-      // TODO
+      context.goNamed('master key',
+          queryParameters: <String, String>{'uid': widget.uid});
     } else if (value == 'Help Center') {
-      // TODO
+      context.goNamed('help center',
+          queryParameters: <String, String>{'uid': widget.uid});
     } else if (value == 'Report Bug') {
-      // TODO
+      context.goNamed('report bug',
+          queryParameters: <String, String>{'uid': widget.uid});
     } else {
-      // TODO
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Try again')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = FirebaseAuthService();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'PROFILE',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(letterSpacing: 3, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              await auth.signOut(context).then(
-                    (value) => context.go('/'),
-                  );
-            },
-            child: const Text(
-              'LOGOUT',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(letterSpacing: 3, fontWeight: FontWeight.bold),
+    final store = FirestoreService();
+    return StreamBuilder<UserModel>(
+      stream: store.getUserData(widget.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Colors.red,
             ),
-          ),
-        ],
-        automaticallyImplyLeading: false,
-      ),
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: ListView(
-          children: [
-            OneProfile(uid: widget.uid),
-            const SizedBox(height: 30),
-            Text(
-              'GENERALS',
+          );
+        }
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text('Error occurred!'),
+          );
+        }
+        final user = snapshot.data!;
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              'PROFILE',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).hintColor),
+                letterSpacing: 3,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 5),
-            TwoProfile(
-              title: 'Profile',
-              onTap: onAccountSettingsTap,
-            ),
-            TwoProfile(title: 'Account Settings', onTap: onAccountSettingsTap),
-            TwoProfile(title: 'Change Password', onTap: onAccountSettingsTap),
-            TwoProfile(title: 'Master-Key', onTap: onAccountSettingsTap),
-            const SizedBox(height: 20),
-            Text('OTHERS',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  await auth.signOut(context);
+                  context.go('/');
+                },
+                child: const Text(
+                  'LOGOUT',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    letterSpacing: 3,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+            automaticallyImplyLeading: false,
+          ),
+          body: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: ListView(
+              children: [
+                const SizedBox(height: 30),
+                OneProfile(uid: widget.uid, user: user),
+                const SizedBox(height: 30),
+                Text(
+                  'GENERALS',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).hintColor)),
-            const SizedBox(height: 5),
-            TwoProfile(title: 'Help Center', onTap: onAccountSettingsTap),
-            TwoProfile(title: 'Report Bug', onTap: onAccountSettingsTap),
-          ],
-        ),
-      ),
+                    color: Theme.of(context).hintColor,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                TwoProfile(
+                  title: 'Profile',
+                  onTap: onAccountSettingsTap,
+                ),
+                TwoProfile(
+                  title: 'Account Settings',
+                  onTap: onAccountSettingsTap,
+                ),
+                TwoProfile(
+                  title: 'Change Password',
+                  onTap: onAccountSettingsTap,
+                ),
+                TwoProfile(
+                  title: 'Master-Key',
+                  onTap: onAccountSettingsTap,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'OTHERS',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).hintColor,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                TwoProfile(
+                  title: 'Help Center',
+                  onTap: onAccountSettingsTap,
+                ),
+                TwoProfile(
+                  title: 'Report Bug',
+                  onTap: onAccountSettingsTap,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -170,9 +220,11 @@ class OneProfile extends StatelessWidget {
   const OneProfile({
     super.key,
     required this.uid,
+    required this.user,
   });
 
-  final String? uid;
+  final String uid;
+  final UserModel user;
 
   @override
   Widget build(BuildContext context) {
@@ -191,18 +243,18 @@ class OneProfile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Harrison Jyrwa',
+          Text(
+            user.userName,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 2),
           Text(
-            FirebaseAuth.instance.currentUser?.email ?? 'error@domain.com',
+            user.email,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -210,6 +262,47 @@ class OneProfile extends StatelessWidget {
               color: Theme.of(context).dividerColor,
             ),
           )
+        ],
+      ),
+    );
+  }
+}
+
+class OneSkell extends StatelessWidget {
+  const OneSkell({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 85,
+            backgroundColor: Theme.of(context).primaryColor,
+            child: const CircleAvatar(
+              radius: 80,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            height: 20,
+            width: 200,
+            decoration: BoxDecoration(
+                color: Theme.of(context).highlightColor,
+                borderRadius: BorderRadius.circular(12)),
+          ),
+          const SizedBox(height: 2),
+          Container(
+            height: 20,
+            width: 250,
+            decoration: BoxDecoration(
+                color: Theme.of(context).highlightColor,
+                borderRadius: BorderRadius.circular(12)),
+          ),
         ],
       ),
     );

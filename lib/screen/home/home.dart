@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
 
 class Home extends StatefulWidget {
@@ -12,7 +13,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int passLength = 16;
-  bool _includeNumber = true;
+  bool _includeNumber = false;
   bool _includeLetter = false;
   bool _includeSymbol = false;
   String generatedPassword = '';
@@ -73,7 +74,35 @@ class _HomeState extends State<Home> {
         ),
         actions: [
           IconButton(
-              onPressed: () {},
+              onPressed: () {
+                if (generatedPassword.length < 5) {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Oops!'),
+                        content: const Text(
+                            'Please generate a password before you can save it'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text('OK'),
+                          )
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  context.goNamed(
+                    'save password',
+                    queryParameters: <String, String>{
+                      'generatedPassword': generatedPassword
+                    },
+                  );
+                }
+              },
               icon: const Icon(
                 Icons.cloud_upload,
               ))

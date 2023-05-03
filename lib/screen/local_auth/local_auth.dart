@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -72,8 +71,7 @@ class _LocalAuthState extends State<LocalAuth> {
       } on PlatformException catch (e) {
         _showErrorDialog(
           context,
-          e.message.toString() +
-              '. Please try register your biometric authentication',
+          '${e.message}. Please try register your biometric authentication',
         );
         return false;
       }
@@ -148,7 +146,7 @@ class _LocalAuthState extends State<LocalAuth> {
   @override
   Widget build(BuildContext context) {
     // final uid = FirebaseAuth.instance.currentUser?.uid;
-    return Scaffold(
+    return const Scaffold(
         // appBar: AppBar(
         //   title: const Text('Security & Privacy'),
         // ),

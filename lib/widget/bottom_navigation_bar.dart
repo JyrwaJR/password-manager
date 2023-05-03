@@ -42,26 +42,27 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
       }
     });
     return Card(
-      elevation: 20,
+      color: Theme.of(context).secondaryHeaderColor,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
         child: GNav(
-          backgroundColor: Theme.of(context).secondaryHeaderColor,
-          tabBackgroundColor: Theme.of(context).cardColor,
+          tabBackgroundColor: Theme.of(context).canvasColor,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           duration: const Duration(milliseconds: 300),
+          activeColor: Theme.of(context).primaryColor,
+          color: Theme.of(context).primaryColorDark,
           tabs: const [
             GButton(
-              icon: Icons.home,
-              text: 'Home',
+              icon: Icons.equalizer_outlined,
+              text: 'Tool',
             ),
             GButton(
-              icon: Icons.lock,
-              text: 'Volt',
+              icon: Icons.shield_outlined,
+              text: 'Password',
             ),
             GButton(
-              icon: Icons.person_2,
+              icon: Icons.person_2_outlined,
               text: 'Profile',
             ),
           ],
