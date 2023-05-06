@@ -158,50 +158,45 @@ class _SavePasswordState extends State<SavePassword> {
                     onPressed: () async {
                       // trigger onSave fuction form form key
                       setState(() {
-                        isLoading = !isLoading;
+                        isLoading = true;
                       });
                       _formKey.currentState!.save();
                       if (_formKey.currentState!.validate()) {
                         if (_createNewGroup) {
                           await store
                               .savePassword(
-                                _createNewGroup,
-                                null,
-                                widget.generatedPassword,
-                                groupName,
-                                uid!,
-                                description!,
-                                userName!,
-                                context,
-                              )
+                                  _createNewGroup,
+                                  null,
+                                  widget.generatedPassword,
+                                  groupName,
+                                  uid!,
+                                  description!,
+                                  userName!,
+                                  context)
                               .then((value) => Navigator.pop(context));
-                          setState(() {
-                            isLoading = !isLoading;
-                          });
                         } else {
-                          setState(() {
-                            isLoading = !isLoading;
-                          });
                           await store
                               .savePassword(
-                                _createNewGroup,
-                                _selectedGroupId,
-                                widget.generatedPassword,
-                                null,
-                                uid!,
-                                description!,
-                                userName!,
-                                context,
-                              )
+                                  _createNewGroup,
+                                  _selectedGroupId,
+                                  widget.generatedPassword,
+                                  null,
+                                  uid!,
+                                  description!,
+                                  userName!,
+                                  context)
                               .then((value) => Navigator.pop(context));
                           setState(() {
-                            isLoading = !isLoading;
+                            isLoading = false;
                           });
                         }
                         setState(() {
-                          isLoading = !isLoading;
+                          isLoading = false;
                         });
                       }
+                      setState(() {
+                        isLoading = false;
+                      });
                     },
                     child: isLoading
                         ? CircularProgressIndicator(

@@ -21,10 +21,8 @@ class _ScaffoldWithBottomNavigationBarState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: widget.child,
-      bottomNavigationBar: CustomBottomNavigationBar(
-          // route: widget.routeLocation,
-          uid: FirebaseAuth.instance.currentUser!.uid),
-    );
+        body: widget.child,
+        bottomNavigationBar: CustomBottomNavigationBar(
+            uid: FirebaseAuth.instance.currentUser!.uid));
   }
 }

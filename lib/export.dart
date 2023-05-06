@@ -5,5 +5,7 @@ export './model/export_model.dart';
 export './service/export_service.dart';
 export './constant/export_constant.dart';
 export './widget/export_widget.dart';
-export './AES/16bits/16_bits.dart';
+export 'AES/128_bits/128_bits_aes.dart';
+export 'AES/192_bits/192_bits_aes.dart';
+export 'AES/256_bits/256_bits_aes.dart';
 export './AES/generate_password.dart';

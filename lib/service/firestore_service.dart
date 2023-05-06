@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 class FirestoreService {
   final firestore = FirebaseFirestore.instance;
+
 // ! Write
   Future<void> registerUser(UserDTO userDTO, BuildContext context) async {
     try {
@@ -143,7 +144,8 @@ class FirestoreService {
     );
   }
 
-  Stream<List<PasswordModel>> viewGroupPassword(groupId) {
+  Stream<List<PasswordModel>> viewGroupPassword(
+      String groupId, BuildContext context) {
     return firestore
         .collection('Passwords')
         .where('groupId', isEqualTo: groupId)
@@ -156,8 +158,50 @@ class FirestoreService {
       (snapshot) {
         return PasswordModel.groupPasswordDataFromSnapshot(snapshot);
       },
-    ).handleError(
-      (e) => print('Group password Error' + e),
-    );
+    ).handleError((e) => ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString()))));
+  }
+
+  // ! Update
+  // ! Update Group Name
+  Future<void> updateGroupName(
+      String groupId, String groupName, BuildContext context) async {
+    try {
+      return await firestore.collection('Group Passwords').doc(groupId).update({
+        'groupName': groupName,
+      });
+    } on FirebaseException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  // ! Delete
+  // ! Delete password with group
+  // delete password which contain groupId
+  Future<void> deleteGroupPassword(String groupId, BuildContext context) async {
+    // first delete all password which contained this group id
+    try {
+      return await firestore
+          .collection('Passwords')
+          .where('groupId', isEqualTo: groupId)
+          .get()
+          .then((snapshot) {
+        for (var doc in snapshot.docs) {
+          doc.reference.delete();
+        }
+        // then delete group password
+      }).then((value) =>
+              firestore.collection('Group Passwords').doc(groupId).delete());
+    } on FirebaseException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 }

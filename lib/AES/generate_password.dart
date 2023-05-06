@@ -24,7 +24,7 @@ class GeneratePasswordService {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Error'),
+          title: const Text('Oops!'),
           content: const Text(
               'You must select at least one option. From setting below'),
           actions: [

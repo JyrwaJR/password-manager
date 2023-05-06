@@ -17,10 +17,6 @@ class _HomeState extends State<Home> {
   bool _includeLetter = false;
   bool _includeSymbol = false;
   String generatedPassword = '';
-  @override
-  void initState() {
-    super.initState();
-  }
 
   void _generate() {
     String password = GeneratePasswordService.generatePassword(
@@ -64,6 +60,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(

@@ -4,14 +4,14 @@ class UserModel {
   String userName;
   String email;
   String uid;
-  // String? masterKeyId;
+  String masterKey;
 
   static UserModel userDataFromSnapshot(DocumentSnapshot snapshot) {
     return UserModel(
       userName: snapshot['userName'],
       uid: snapshot['uid'],
       email: snapshot['email'],
-      // masterKeyId: snapshot['masterKeyId'],
+      masterKey: snapshot['masterKey'],
     );
   }
 
@@ -19,5 +19,6 @@ class UserModel {
     required this.userName,
     required this.email,
     required this.uid,
+    required this.masterKey,
   });
 }

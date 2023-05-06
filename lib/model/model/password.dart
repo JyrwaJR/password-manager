@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:password_manager/model/model/group_password.dart';
 
 class PasswordModel {
   final String groupId;

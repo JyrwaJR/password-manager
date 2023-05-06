@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
@@ -26,7 +25,7 @@ class _VoltState extends State<Volt> {
     final store = FirestoreService();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Back', style: TextStyle(letterSpacing: 1)),
+        // title: const Text('Back', style: TextStyle(letterSpacing: 1)),
         automaticallyImplyLeading: true,
       ),
       body: Padding(
@@ -83,6 +82,7 @@ class _VoltState extends State<Volt> {
       ),
       floatingActionButton: ElevatedButton.icon(
           onPressed: () {
+            _groupNameController.clear();
             // show modal bottom sheet
             showDialog(
               context: context,

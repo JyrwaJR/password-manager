@@ -103,10 +103,7 @@ class AppRouter {
       GoRoute(
         path: '/local_auth',
         name: 'local_auth',
-        builder: (context, state) => const LocalAuth(),
-        // builder: (context, state) => SavePassword(
-        //     generatedPassword:
-        //         state.queryParameters['generatedPassword'] ?? ''),
+        builder: (context, state) => const AccountSettings(),
         redirect: (context, state) {
           if (auth.currentUser == null) {
             return '/';
@@ -120,7 +117,7 @@ class AppRouter {
         builder: (context, state) => const Email(),
         redirect: (context, state) {
           if (auth.currentUser != null) {
-            return '/local_auth';
+            return '/home';
           }
           return null;
         },
