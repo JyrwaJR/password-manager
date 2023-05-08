@@ -224,7 +224,7 @@ class _SavePasswordState extends State<SavePassword> {
                                     passwordId: passwordId,
                                     password: widget.generatedPassword,
                                     userName: userName!,
-                                    website: description!,
+                                    website: website!,
                                   ),
                                   _selectedGroupId!,
                                   uid!,

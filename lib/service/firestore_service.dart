@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:password_manager/export.dart';
 import 'package:uuid/uuid.dart';
@@ -133,7 +136,6 @@ class FirestoreService {
         if (groupData.data()?['key'] != null) {
           final encryptedKey = groupData.data()?['key'];
           final groupKey = AES256Bits.decrypt(encryptedKey, masterKey);
-
           return groupKey;
         } else {
           return null;
@@ -247,18 +249,36 @@ class FirestoreService {
     );
   }
 
-  Stream<List<PasswordModel>> viewGroupPassword(
-      String groupId, BuildContext context) {
-    return firestore
+  // Stream<List<PasswordModel>> viewGroupPassword(
+  //     String groupId, BuildContext context) {
+  //  return firestore
+  //    .collection('Passwords')
+  //  .where('groupId', isEqualTo: groupId)
+  //.snapshots()
+  //.map(
+  //(snapshot) {///
+  //return PasswordModel.groupPasswordDataFromSnapshot(snapshot);
+  //},
+  //).handleError((e) => ScaffoldMessenger.of(context)
+  //      .showSnackBar(SnackBar(content: Text(e.toString()))));
+  //}
+  Stream<List<PasswordModel>> viewGroupPasswordWithKey(
+      String groupId, String uid, BuildContext context) {
+    return FirebaseFirestore.instance
         .collection('Passwords')
         .where('groupId', isEqualTo: groupId)
         .snapshots()
-        .map(
-      (snapshot) {
-        return PasswordModel.groupPasswordDataFromSnapshot(snapshot);
-      },
-    ).handleError((e) => ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString()))));
+        .asyncMap((snapshot) async {
+          final groupKey = await getGroupKey(groupId, uid, context);
+          if (groupKey == null) {
+            return [];
+          }
+          return PasswordModel.groupPasswordDataFromSnapshot(
+              snapshot, groupKey);
+        })
+        .handleError((e) => ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString()))))
+        .cast<List<PasswordModel>>();
   }
 
   // ! Update
