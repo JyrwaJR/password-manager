@@ -68,9 +68,12 @@ class FirebaseAuthService {
   }
 
   // ! Delete User
-  Future<void> deleteUser(BuildContext context) async {
+  Future<void> deleteUser(String groupId, BuildContext context) async {
     try {
-      await auth.currentUser!.delete();
+      final store = FirestoreService();
+      await store
+          .deleteGroupPassword(groupId, context)
+          .then((value) => auth.currentUser?.delete());
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.message.toString())));

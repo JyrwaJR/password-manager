@@ -1,9 +1,7 @@
-import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:password_manager/AES/master_key_generator.dart';
 import 'package:password_manager/export.dart';
 
 class Register extends StatefulWidget {
@@ -283,22 +281,34 @@ class _RegisterState extends State<Register> {
                                 if (!mounted) {
                                   return;
                                 }
-                                final key = MasterKeyGenerator()
-                                    .generateKeyFromPassword(
-                                        _passwordController.text)
-                                    .toString();
-                                final uid =
-                                    FirebaseAuth.instance.currentUser?.uid;
-                                await firestore
-                                    .registerUser(
-                                        UserDTO(
-                                          userName: _nameController.text,
-                                          email: _emailController.text,
-                                          masterKey: key,
-                                          uid: uid!,
-                                        ),
-                                        context)
-                                    .then((value) => context.goNamed('home'));
+                                try {
+                                  final uid =
+                                      FirebaseAuth.instance.currentUser?.uid;
+                                  if (uid != null) {
+                                    await firestore
+                                        .registerUser(
+                                          UserDTO(
+                                            userName: _nameController.text,
+                                            email: _emailController.text,
+                                            uid: uid,
+                                          ),
+                                          context,
+                                        )
+                                        .then(
+                                            (value) => context.goNamed('home'));
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text('Please try again')));
+                                  }
+                                } on FirebaseAuthException catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(e.message.toString())));
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(e.toString())));
+                                }
                               }
                               setState(() {
                                 _isLoading = false;

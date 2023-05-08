@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
@@ -48,32 +52,13 @@ class _ProfileState extends State<Profile> {
               color: Colors.red,
             ),
           );
-        }
-        if (snapshot.hasError) {
-          return const Center(
-            child: Text('Error occurred!'),
-          );
-        }
-        final user = snapshot.data!;
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text(
-              'PROFILE',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                letterSpacing: 3,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  await auth.signOut(context);
-                  context.go('/');
-                },
-                child: const Text(
-                  'LOGOUT',
+        } else if (snapshot.connectionState == ConnectionState.active) {
+          if (snapshot.hasData && snapshot.data != null) {
+            final user = snapshot.data!;
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text(
+                  'PROFILE',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -81,68 +66,117 @@ class _ProfileState extends State<Profile> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                actions: [
+                  TextButton(
+                    onPressed: () async {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Are you sure?'),
+                          content: const Text('Do you want to logout?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () async {
+                                await auth.signOut(context).then((value) {
+                                  Navigator.pop(context);
+                                  context.goNamed('/');
+                                });
+                              },
+                              child: const Text('Yes'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text('No'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'LOGOUT',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        letterSpacing: 3,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+                automaticallyImplyLeading: false,
               ),
-            ],
-            automaticallyImplyLeading: false,
-          ),
-          body: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: ListView(
-              children: [
-                const SizedBox(height: 30),
-                OneProfile(uid: widget.uid, user: user),
-                const SizedBox(height: 30),
-                Text(
-                  'GENERALS',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).hintColor,
-                  ),
+              body: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: ListView(
+                  children: [
+                    const SizedBox(height: 30),
+                    OneProfile(uid: widget.uid, user: user),
+                    const SizedBox(height: 30),
+                    Text(
+                      'GENERALS',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).hintColor,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    TwoProfile(
+                      title: 'Profile',
+                      onTap: onAccountSettingsTap,
+                    ),
+                    TwoProfile(
+                      title: 'Account Settings',
+                      onTap: onAccountSettingsTap,
+                    ),
+                    TwoProfile(
+                      title: 'Change Password',
+                      onTap: onAccountSettingsTap,
+                    ),
+                    TwoProfile(
+                      title: 'Master-Key',
+                      onTap: onAccountSettingsTap,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'OTHERS',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).hintColor,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    TwoProfile(
+                      title: 'Help Center',
+                      onTap: onAccountSettingsTap,
+                    ),
+                    TwoProfile(
+                      title: 'Report Bug',
+                      onTap: onAccountSettingsTap,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 5),
-                TwoProfile(
-                  title: 'Profile',
-                  onTap: onAccountSettingsTap,
-                ),
-                TwoProfile(
-                  title: 'Account Settings',
-                  onTap: onAccountSettingsTap,
-                ),
-                TwoProfile(
-                  title: 'Change Password',
-                  onTap: onAccountSettingsTap,
-                ),
-                TwoProfile(
-                  title: 'Master-Key',
-                  onTap: onAccountSettingsTap,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'OTHERS',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).hintColor,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                TwoProfile(
-                  title: 'Help Center',
-                  onTap: onAccountSettingsTap,
-                ),
-                TwoProfile(
-                  title: 'Report Bug',
-                  onTap: onAccountSettingsTap,
-                ),
-              ],
+              ),
+            );
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        } else {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Colors.red,
             ),
-          ),
-        );
+          );
+        }
       },
     );
   }
@@ -238,8 +272,38 @@ class OneProfile extends StatelessWidget {
             backgroundColor: Theme.of(context).primaryColor,
             child: CircleAvatar(
               radius: 80,
-              backgroundImage:
-                  NetworkImage('https://api.multiavatar.com/$uid Bond.png'),
+              child: CachedNetworkImage(
+                imageUrl: "https://api.multiavatar.com/$uid Bond.png",
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                fit: BoxFit.cover,
+                errorWidget: (context, url, error) {
+                  if (error is SocketException) {
+                    return const Center(child: Icon(Icons.error_outline));
+                  } else if (error is TimeoutException) {
+                    return const Center(child: Text('Request timed out'));
+                  } else {
+                    return const Center(child: Text('Failed to load image'));
+                  }
+                },
+                imageBuilder: (context, imageProvider) {
+                  return Image.network(
+                    "https://api.multiavatar.com/$uid Bond.png",
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      if (error is SocketException) {
+                        return const Center(child: Icon(Icons.error_outline));
+                      } else if (error is TimeoutException) {
+                        return const Center(child: Text('Request timed out'));
+                      } else {
+                        return const Center(
+                            child: Text('Failed to load image'));
+                      }
+                    },
+                  );
+                },
+              ),
             ),
           ),
           const SizedBox(height: 10),

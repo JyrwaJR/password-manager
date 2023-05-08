@@ -6,26 +6,27 @@ class PasswordModel {
   final String password;
   final String dateCreated;
   final String userName;
-  final String? description;
+  final String website;
   const PasswordModel({
     required this.groupId,
     required this.passwordId,
     required this.password,
     required this.dateCreated,
     required this.userName,
-    this.description,
+    required this.website,
     // required this.masterKeyId,
   });
 
   static List<PasswordModel> groupPasswordDataFromSnapshot(
-      QuerySnapshot snapshot) {
+    QuerySnapshot snapshot,
+  ) {
     return snapshot.docs.map((doc) {
       return PasswordModel(
         groupId: doc['groupId'] ?? '',
         password: doc['password'] ?? '',
         passwordId: doc['passwordId'] ?? '',
         userName: doc['userName'] ?? '',
-        description: doc['description'] ?? '',
+        website: doc['website'] ?? '',
         dateCreated: doc['dateCreated'] ?? '',
       );
     }).toList();

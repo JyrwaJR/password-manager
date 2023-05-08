@@ -9,3 +9,4 @@ export 'AES/128_bits/128_bits_aes.dart';
 export 'AES/192_bits/192_bits_aes.dart';
 export 'AES/256_bits/256_bits_aes.dart';
 export './AES/generate_password.dart';
+export './AES/master_key_generator.dart';
