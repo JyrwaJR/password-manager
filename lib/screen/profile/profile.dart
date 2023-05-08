@@ -79,7 +79,7 @@ class _ProfileState extends State<Profile> {
                               onPressed: () async {
                                 await auth.signOut(context).then((value) {
                                   Navigator.pop(context);
-                                  context.goNamed('/');
+                                  context.go('/');
                                 });
                               },
                               child: const Text('Yes'),

@@ -280,7 +280,7 @@ class _ThreeSavePasswordState extends State<ThreeSavePassword> {
   Widget build(BuildContext context) {
     final store = FirestoreService();
     return StreamBuilder<List<GroupPassword>>(
-      stream: store.getGroupPassword(widget.uid),
+      stream: store.getGroupPassword(widget.uid, context),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Padding(

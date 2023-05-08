@@ -21,20 +21,6 @@ final auth = FirebaseAuth.instance;
 
 class _ViewGroupPasswordState extends State<ViewGroupPassword> {
   final uid = auth.currentUser?.uid;
-  String masterKey = '';
-  _getKey(String groupId, String uid, BuildContext context) async {
-    final key = await store.getGroupKey(groupId, uid, context);
-    setState(() {
-      masterKey = key!;
-    });
-  }
-
-  @override
-  void initState() {
-    _getKey(widget.groupId, uid ?? '', context);
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +44,9 @@ class _ViewGroupPasswordState extends State<ViewGroupPassword> {
           children: [
             TitleViewGroupPassword(groupId: widget.groupId),
             const SizedBox(height: 20),
-            OneViewGroupPassword(groupId: widget.groupId, masterKey: masterKey),
+            OneViewGroupPassword(
+              groupId: widget.groupId,
+            ),
           ],
         ),
       ),
@@ -76,8 +64,9 @@ class TitleViewGroupPassword extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = FirestoreService();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
     return StreamBuilder<GroupPassword>(
-        stream: store.getGroupPasswordWithGroupId(groupId),
+        stream: store.getGroupPasswordWithGroupId(groupId, uid!, context),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -161,11 +150,10 @@ class TitleViewGroupPassword extends StatelessWidget {
 
 class OneViewGroupPassword extends StatelessWidget {
   final String groupId;
-  final String masterKey;
+
   const OneViewGroupPassword({
     super.key,
     required this.groupId,
-    required this.masterKey,
   });
 
   @override
@@ -181,21 +169,17 @@ class OneViewGroupPassword extends StatelessWidget {
         } else if (snapshot.connectionState == ConnectionState.active) {
           if (snapshot.hasData) {
             final password = snapshot.data;
-            if (masterKey.isNotEmpty) {
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: password.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return PasswordCard(
-                    password: password[index],
-                    masterKey: masterKey,
-                  );
-                },
-              );
-            } else {
-              return const Center(child: CircularProgressIndicator());
-            }
+
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: password.length,
+              itemBuilder: (BuildContext context, int index) {
+                return PasswordCard(
+                  password: password[index],
+                );
+              },
+            );
           } else {
             return const Center(child: CircularProgressIndicator());
           }
@@ -211,12 +195,12 @@ class PasswordCard extends StatelessWidget {
   const PasswordCard({
     super.key,
     required this.password,
-    required this.masterKey,
   });
   final PasswordModel password;
-  final String masterKey;
+
   @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -238,8 +222,7 @@ class PasswordCard extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 23,
                       child: CachedNetworkImage(
-                        imageUrl:
-                            "https://api.multiavatar.com/${password.passwordId} Bond.png",
+                        imageUrl: "https://api.multiavatar.com/${uid} Bond.png",
                         placeholder: (context, url) => const Center(
                           child: CircularProgressIndicator(),
                         ),

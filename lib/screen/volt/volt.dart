@@ -53,7 +53,8 @@ class _VoltState extends State<Volt> {
             ),
             const SizedBox(height: 20),
             StreamBuilder<List<GroupPassword>>(
-              stream: _firestore.getGroupPassword(auth.currentUser?.uid),
+              stream:
+                  _firestore.getGroupPassword(auth.currentUser!.uid, context),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -108,9 +109,9 @@ class TwoVolt extends StatelessWidget {
         return InkWell(
           onTap: () async {
             final store = FirestoreService();
-            final auth = FirebaseAuth.instance.currentUser?.uid;
+            final uid = FirebaseAuth.instance.currentUser?.uid;
             final key =
-                await store.getGroupKey(model[index].groupId, auth!, context);
+                await store.getGroupKey(model[index].groupId, uid!, context);
             context.goNamed('view group password',
                 queryParameters: <String, String>{
                   'groupId': model[index].groupId,
@@ -179,7 +180,7 @@ class OneVolt extends StatelessWidget {
                     } else if (error is TimeoutException) {
                       return const Center(child: Text('Request timed out'));
                     } else {
-                      return const Center(child: Text('Failed to load image'));
+                      return const Center(child: Text('Failed to load '));
                     }
                   },
                 );
@@ -249,10 +250,10 @@ class PasswordGroupCard extends StatelessWidget {
                                     child: Icon(Icons.error_outline));
                               } else if (error is TimeoutException) {
                                 return const Center(
-                                    child: Text('Request timed out'));
+                                    child: Icon(Icons.error_outline));
                               } else {
                                 return const Center(
-                                    child: Text('Failed to load image'));
+                                    child: Icon(Icons.error_outline));
                               }
                             },
                           );
@@ -273,7 +274,7 @@ class PasswordGroupCard extends StatelessWidget {
                 ],
               ),
               Icon(
-                Icons.arrow_forward_ios,
+                Icons.more_vert,
                 color: Theme.of(context).primaryColor,
               )
             ],
