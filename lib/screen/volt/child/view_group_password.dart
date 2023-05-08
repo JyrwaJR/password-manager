@@ -8,7 +8,8 @@ import 'package:password_manager/export.dart';
 
 class ViewGroupPassword extends StatefulWidget {
   final String groupId;
-  const ViewGroupPassword({super.key, 
+  const ViewGroupPassword({
+    super.key,
     required this.groupId,
   });
   @override
@@ -170,8 +171,9 @@ class OneViewGroupPassword extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = FirestoreService();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
     return StreamBuilder<List<PasswordModel>>(
-      stream: store.viewGroupPassword(groupId, context),
+      stream: store.viewGroupPasswordWithKey(groupId, uid!, context),
       initialData: const [],
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -285,7 +287,8 @@ class PasswordCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AES256Bits.decrypt(password.userName, masterKey),
+                          password.userName,
+                          // AES256Bits.decrypt(password.userName, masterKey),
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w400,
@@ -294,7 +297,7 @@ class PasswordCard extends StatelessWidget {
                         const SizedBox(
                           height: 3,
                         ),
-                        Text(AES256Bits.decrypt(password.website, masterKey),
+                        Text(password.website,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -306,10 +309,7 @@ class PasswordCard extends StatelessWidget {
                   IconButton(
                       onPressed: () {
                         // copy to clipboard
-                        copyToClipboard(AES256Bits.decrypt(
-                          password.password,
-                          masterKey,
-                        ));
+                        copyToClipboard(password.password);
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text('Password copy successful')));
