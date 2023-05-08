@@ -4,12 +4,11 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:password_manager/export.dart';
 
 class ViewGroupPassword extends StatefulWidget {
   final String groupId;
-  const ViewGroupPassword({
+  const ViewGroupPassword({super.key, 
     required this.groupId,
   });
   @override
@@ -173,7 +172,7 @@ class OneViewGroupPassword extends StatelessWidget {
     final store = FirestoreService();
     return StreamBuilder<List<PasswordModel>>(
       stream: store.viewGroupPassword(groupId, context),
-      initialData: [],
+      initialData: const [],
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
