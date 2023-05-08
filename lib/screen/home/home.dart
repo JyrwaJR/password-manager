@@ -1,7 +1,13 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+
 import 'package:password_manager/export.dart';
 
 class Home extends StatefulWidget {
@@ -17,10 +23,6 @@ class _HomeState extends State<Home> {
   bool _includeLetter = false;
   bool _includeSymbol = false;
   String generatedPassword = '';
-  @override
-  void initState() {
-    super.initState();
-  }
 
   void _generate() {
     String password = GeneratePasswordService.generatePassword(
@@ -64,6 +66,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+    final firestore = FirestoreService();
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -74,15 +77,17 @@ class _HomeState extends State<Home> {
         ),
         actions: [
           IconButton(
-              onPressed: () {
+              onPressed: () async {
                 if (generatedPassword.length < 5) {
+                  if (!mounted) {
+                    return;
+                  }
                   showDialog(
                     context: context,
                     builder: (context) {
                       return AlertDialog(
                         title: const Text('Oops!'),
-                        content: const Text(
-                            'Please generate a password before you can save it'),
+                        content: const Text('Please generate a password '),
                         actions: [
                           TextButton(
                             onPressed: () {
@@ -95,6 +100,9 @@ class _HomeState extends State<Home> {
                     },
                   );
                 } else {
+                  if (!mounted) {
+                    return;
+                  }
                   context.goNamed(
                     'save password',
                     queryParameters: <String, String>{
@@ -340,30 +348,8 @@ class _TwoState extends State<Two> {
       onTap: () {
         if (widget.generatedPassword.isNotEmpty) {
           copyToClipboard(widget.generatedPassword);
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text(
-                'Successful',
-              ),
-              content:
-                  const Text('Password was successfully copied to clipboard.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('SAVE'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Password copy successful')));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Please generate a password')));
@@ -431,6 +417,28 @@ class One extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<Image> getImage() async {
+      final completer = Completer<Image>();
+      try {
+        final response = await http.get(
+          Uri.parse("https://api.multiavatar.com/$uid Bond.png"),
+        );
+        if (response.statusCode == 200) {
+          final bytes = response.bodyBytes;
+          final image = await decodeImageFromList(bytes);
+          completer.complete(Image.memory(bytes, fit: BoxFit.cover));
+        } else {
+          completer.completeError(response.statusCode);
+        }
+      } on SocketException {
+        completer
+            .completeError(const SocketException("No internet connection"));
+      } catch (e) {
+        completer.completeError(e);
+      }
+      return completer.future;
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -449,8 +457,36 @@ class One extends StatelessWidget {
           backgroundColor: Theme.of(context).primaryColor,
           child: CircleAvatar(
             radius: 30,
-            backgroundImage: NetworkImage(
-              "https://api.multiavatar.com/$uid Bond.png",
+            child: CachedNetworkImage(
+              imageUrl: "https://api.multiavatar.com/$uid Bond.png",
+              placeholder: (context, url) => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              fit: BoxFit.cover,
+              errorWidget: (context, url, error) {
+                if (error is SocketException) {
+                  return const Center(child: Icon(Icons.error_outline));
+                } else if (error is TimeoutException) {
+                  return const Center(child: Text('Request timed out'));
+                } else {
+                  return const Center(child: Text('Failed to load image'));
+                }
+              },
+              imageBuilder: (context, imageProvider) {
+                return Image.network(
+                  "https://api.multiavatar.com/$uid Bond.png",
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    if (error is SocketException) {
+                      return const Center(child: Icon(Icons.error_outline));
+                    } else if (error is TimeoutException) {
+                      return const Center(child: Text('Request timed out'));
+                    } else {
+                      return const Center(child: Text('Failed to load image'));
+                    }
+                  },
+                );
+              },
             ),
           ),
         )

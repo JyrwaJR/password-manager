@@ -1,3 +1,4 @@
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -280,15 +281,34 @@ class _RegisterState extends State<Register> {
                                 if (!mounted) {
                                   return;
                                 }
-                                await firestore
-                                    .registerUser(
-                                        UserDTO(
+                                try {
+                                  final uid =
+                                      FirebaseAuth.instance.currentUser?.uid;
+                                  if (uid != null) {
+                                    await firestore
+                                        .registerUser(
+                                          UserDTO(
                                             userName: _nameController.text,
                                             email: _emailController.text,
-                                            uid: FirebaseAuth
-                                                .instance.currentUser!.uid),
-                                        context)
-                                    .then((value) => context.goNamed('home'));
+                                            uid: uid,
+                                          ),
+                                          context,
+                                        )
+                                        .then(
+                                            (value) => context.goNamed('home'));
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text('Please try again')));
+                                  }
+                                } on FirebaseAuthException catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(e.message.toString())));
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(e.toString())));
+                                }
                               }
                               setState(() {
                                 _isLoading = false;

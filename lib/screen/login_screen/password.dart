@@ -127,7 +127,7 @@ class _PasswordState extends State<Password> {
                                     return;
                                   }
                                   context.go(
-                                    context.namedLocation('local_auth'),
+                                    context.namedLocation('home'),
                                   );
                                 }
                                 setState(() {

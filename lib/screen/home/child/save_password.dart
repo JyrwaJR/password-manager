@@ -1,6 +1,11 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:password_manager/export.dart';
+import 'package:uuid/uuid.dart';
 
 class SavePassword extends StatefulWidget {
   const SavePassword({super.key, required this.generatedPassword});
@@ -15,8 +20,10 @@ class _SavePasswordState extends State<SavePassword> {
   String? _selectedGroupId;
   String? groupName;
   String? userName;
+  String? website;
   String? description;
   bool isLoading = false;
+
   void _handleCreateNewGroupChanged(bool value) {
     setState(() {
       _createNewGroup = !_createNewGroup;
@@ -77,6 +84,12 @@ class _SavePasswordState extends State<SavePassword> {
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 6.0),
                               child: TextFormField(
+                                  maxLength: 20,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      groupName = value;
+                                    });
+                                  },
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter a Group name';
@@ -104,7 +117,13 @@ class _SavePasswordState extends State<SavePassword> {
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: TextFormField(
+                            onChanged: (value) {
+                              setState(() {
+                                userName = value;
+                              });
+                            },
                             maxLength: 50,
+                            keyboardType: TextInputType.emailAddress,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter a username';
@@ -127,18 +146,36 @@ class _SavePasswordState extends State<SavePassword> {
                           )),
                       const SizedBox(height: 20),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: TextFormField(
-                          maxLines: 3,
-                          maxLength: 200,
-                          onSaved: (value) {
-                            description = value;
-                          },
-                          decoration: const InputDecoration(
-                              labelText: 'Description',
-                              hintText: 'enter a description '),
-                        ),
-                      ),
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: TextFormField(
+                            onChanged: (value) {
+                              setState(() {
+                                website = value;
+                              });
+                            },
+                            maxLength: 20,
+                            keyboardType: TextInputType.url,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a website';
+                              }
+                              if (value.length < 3) {
+                                return 'Name must b more in length';
+                              }
+                              if (value.contains(' ')) {
+                                return 'Please enter a valid website';
+                              }
+                              return null;
+                            },
+                            onSaved: (value) {
+                              website = value;
+                            },
+                            decoration: const InputDecoration(
+                              labelText: 'Website link',
+                              hintText: 'Enter your website link',
+                            ),
+                          )),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
@@ -156,52 +193,55 @@ class _SavePasswordState extends State<SavePassword> {
                       ),
                     ),
                     onPressed: () async {
-                      // trigger onSave fuction form form key
                       setState(() {
-                        isLoading = !isLoading;
+                        isLoading = true;
                       });
                       _formKey.currentState!.save();
                       if (_formKey.currentState!.validate()) {
+                        final passwordId = const Uuid().v1();
                         if (_createNewGroup) {
+                          final groupId = await store.createGroupForPassword(
+                              groupName!, uid!, context);
+                          if (!mounted) {
+                            return;
+                          }
                           await store
-                              .savePassword(
-                                _createNewGroup,
-                                null,
-                                widget.generatedPassword,
-                                groupName,
-                                uid!,
-                                description!,
-                                userName!,
-                                context,
-                              )
+                              .addPassword(
+                                  PasswordDTO(
+                                    passwordId: passwordId,
+                                    password: widget.generatedPassword,
+                                    userName: userName!,
+                                    website: website!,
+                                  ),
+                                  groupId!,
+                                  uid,
+                                  context)
                               .then((value) => Navigator.pop(context));
-                          setState(() {
-                            isLoading = !isLoading;
-                          });
                         } else {
-                          setState(() {
-                            isLoading = !isLoading;
-                          });
                           await store
-                              .savePassword(
-                                _createNewGroup,
-                                _selectedGroupId,
-                                widget.generatedPassword,
-                                null,
-                                uid!,
-                                description!,
-                                userName!,
-                                context,
-                              )
+                              .addPassword(
+                                  PasswordDTO(
+                                    passwordId: passwordId,
+                                    password: widget.generatedPassword,
+                                    userName: userName!,
+                                    website: description!,
+                                  ),
+                                  _selectedGroupId!,
+                                  uid!,
+                                  context)
                               .then((value) => Navigator.pop(context));
+
                           setState(() {
-                            isLoading = !isLoading;
+                            isLoading = false;
                           });
                         }
                         setState(() {
-                          isLoading = !isLoading;
+                          isLoading = false;
                         });
                       }
+                      setState(() {
+                        isLoading = false;
+                      });
                     },
                     child: isLoading
                         ? CircularProgressIndicator(
@@ -247,6 +287,12 @@ class _ThreeSavePasswordState extends State<ThreeSavePassword> {
             padding: const EdgeInsets.symmetric(horizontal: 6.0),
             child: DropdownButtonFormField<String>(
               isExpanded: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please create group';
+                }
+                return null;
+              },
               decoration: const InputDecoration(
                 labelText: 'No Group found',
               ),
@@ -262,7 +308,7 @@ class _ThreeSavePasswordState extends State<ThreeSavePassword> {
             ),
           );
         } else if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.data != null) {
+          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
             final data = snapshot.data;
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -294,7 +340,22 @@ class _ThreeSavePasswordState extends State<ThreeSavePassword> {
               ),
             );
           } else {
-            return const SizedBox();
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6.0),
+              child: DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Please create a group',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please create a new group';
+                    }
+                    return null;
+                  },
+                  onChanged: null,
+                  items: const []),
+            );
           }
         } else {
           return const Center(child: CircularProgressIndicator());
@@ -339,12 +400,41 @@ class OneSavePassword extends StatelessWidget {
               letterSpacing: 1, fontSize: 30, fontWeight: FontWeight.bold),
         ),
         CircleAvatar(
-          radius: 35,
+          radius: 34,
           backgroundColor: Theme.of(context).primaryColor,
           child: CircleAvatar(
-            radius: 33,
-            backgroundImage:
-                NetworkImage('https://api.multiavatar.com/$uid Bond.png'),
+            radius: 30,
+            child: CachedNetworkImage(
+              imageUrl: "https://api.multiavatar.com/$uid Bond.png",
+              placeholder: (context, url) => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              fit: BoxFit.cover,
+              errorWidget: (context, url, error) {
+                if (error is SocketException) {
+                  return const Center(child: Icon(Icons.error_outline));
+                } else if (error is TimeoutException) {
+                  return const Center(child: Text('Request timed out'));
+                } else {
+                  return const Center(child: Text('Failed to load image'));
+                }
+              },
+              imageBuilder: (context, imageProvider) {
+                return Image.network(
+                  "https://api.multiavatar.com/$uid Bond.png",
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    if (error is SocketException) {
+                      return const Center(child: Icon(Icons.error_outline));
+                    } else if (error is TimeoutException) {
+                      return const Center(child: Text('Request timed out'));
+                    } else {
+                      return const Center(child: Text('Failed to load image'));
+                    }
+                  },
+                );
+              },
+            ),
           ),
         )
       ],

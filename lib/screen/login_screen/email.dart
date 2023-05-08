@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/constant/regex.dart';
@@ -22,7 +21,6 @@ class _EmailState extends State<Email> {
 
   @override
   Widget build(BuildContext context) {
-    print(FirebaseAuth.instance.currentUser?.uid);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
