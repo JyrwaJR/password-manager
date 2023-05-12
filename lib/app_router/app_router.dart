@@ -1,13 +1,23 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
 
 class AppRouter {
   final auth = FirebaseAuth.instance;
+
   late final GoRouter appRouter = GoRouter(
     debugLogDiagnostics: true,
     initialLocation: '/',
+    redirect: (context, state) {
+      final unSupportScreen = MediaQuery.of(context).size.width > 600;
+      if (unSupportScreen) {
+        return '/un-support';
+      }
+
+      return null;
+    },
     routes: [
       ShellRoute(
         builder: (context, state, child) {
@@ -28,35 +38,50 @@ class AppRouter {
         },
         routes: [
           GoRoute(
-              path: '/home',
-              name: 'home',
-              redirect: (context, state) {
-                final auth = FirebaseAuth.instance;
-                if (auth.currentUser?.uid == null) {
-                  return '/';
-                }
-                return null;
-              },
-              builder: (context, state) => const Home(),
-              routes: [
-                GoRoute(
-                  path: 'save-password',
-                  name: 'save password',
-                  builder: (context, state) => SavePassword(
-                      generatedPassword:
-                          state.queryParameters['generatedPassword'] ?? ''),
-                ),
-              ]),
+            path: '/home',
+            name: 'home',
+            redirect: (context, state) {
+              final auth = FirebaseAuth.instance;
+              final unSupportScreen = MediaQuery.of(context).size.width > 600;
+              if (unSupportScreen) {
+                return '/un-support';
+              }
+              if (auth.currentUser?.uid == null) {
+                return '/';
+              }
+              return null;
+            },
+            builder: (context, state) => const Home(),
+            routes: [
+              GoRoute(
+                path: 'save-password',
+                name: 'save password',
+                builder: (context, state) => SavePassword(
+                    generatedPassword:
+                        state.queryParameters['generatedPassword'] ?? ''),
+              ),
+            ],
+          ),
           GoRoute(
             path: '/volt',
             name: 'volt',
             builder: (context, state) => const Volt(),
             routes: [
               GoRoute(
-                  path: 'view-group-password',
-                  name: 'view group password',
-                  builder: (context, state) => ViewGroupPassword(
-                      groupId: state.queryParameters['groupId']!)),
+                path: 'view-group-password',
+                name: 'view group password',
+                builder: (context, state) => ViewGroupPassword(
+                    groupId: state.queryParameters['groupId']!),
+                routes: [
+                  GoRoute(
+                    path: 'add-credential',
+                    name: 'add credential',
+                    builder: (context, state) => AddCredential(
+                      groupId: state.queryParameters['groupId']!,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           GoRoute(
@@ -100,10 +125,24 @@ class AppRouter {
         ],
       ),
       GoRoute(
+        path: '/local-auth',
+        name: 'local auth',
+        builder: (context, state) => const ViewPassword(),
+      ),
+      GoRoute(
+        path: '/un-support',
+        name: 'un-support',
+        builder: (context, state) => const UnSupportScreen(),
+      ),
+      GoRoute(
         path: '/',
         name: 'email',
         builder: (context, state) => const Email(),
         redirect: (context, state) {
+          final unSupportScreen = MediaQuery.of(context).size.width > 600;
+          if (unSupportScreen) {
+            return '/un-support';
+          }
           if (auth.currentUser != null) {
             return '/home';
           }

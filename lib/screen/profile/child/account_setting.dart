@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:password_manager/export.dart';
 
 class AccountSettings extends StatefulWidget {
   const AccountSettings({super.key});
@@ -9,23 +8,6 @@ class AccountSettings extends StatefulWidget {
 }
 
 class _AccountSettingsState extends State<AccountSettings> {
-  final String _plaintext = "Hello, world!";
-  final String _secretKey = "mySecretKeys";
-  String _encryptedText = "";
-  String _decryptedText = "";
-
-  void _encryptText() {
-    setState(() {
-      _encryptedText = AES192Bits.encrypt(_plaintext, _secretKey);
-    });
-  }
-
-  void _decryptText() {
-    setState(() {
-      _decryptedText = AES192Bits.decrypt(_encryptedText, _secretKey);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

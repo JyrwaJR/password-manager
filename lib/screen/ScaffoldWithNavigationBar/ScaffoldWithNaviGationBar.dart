@@ -18,11 +18,11 @@ class ScaffoldWithBottomNavigationBar extends StatefulWidget {
 
 class _ScaffoldWithBottomNavigationBarState
     extends State<ScaffoldWithBottomNavigationBar> {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: widget.child,
-        bottomNavigationBar: CustomBottomNavigationBar(
-            uid: FirebaseAuth.instance.currentUser!.uid));
+        bottomNavigationBar: CustomBottomNavigationBar(uid: uid!));
   }
 }

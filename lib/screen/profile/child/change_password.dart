@@ -27,6 +27,7 @@ class _ChangePasswordState extends State<ChangePassword> {
     super.initState();
   }
 
+  final uid = FirebaseAuth.instance.currentUser?.uid;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,6 +46,10 @@ class _ChangePasswordState extends State<ChangePassword> {
           padding: const EdgeInsets.only(left: 20.0, right: 20.0),
           child: ListView(
             children: [
+              const SizedBox(
+                height: 20,
+              ),
+              BrandTitle(title: 'Change Password', id: uid ?? ''),
               const SizedBox(
                 height: 20,
               ),

@@ -1,54 +1,65 @@
-import 'dart:async';
+// ignore_for_file: file_names
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
 import 'package:uuid/uuid.dart';
 
 class FirestoreService {
   final firestore = FirebaseFirestore.instance;
-
+  final CollectionReference _UsersCollection =
+      FirebaseFirestore.instance.collection('Users');
+  final CollectionReference _GroupPasswordsCollection =
+      FirebaseFirestore.instance.collection('Group Passwords');
+  final CollectionReference _PasswordsCollection =
+      FirebaseFirestore.instance.collection('Passwords');
+  final CollectionReference _MasterKeysCollection =
+      FirebaseFirestore.instance.collection('Master Keys');
 // ! Write
   Future<void> registerUser(UserDTO userDTO, BuildContext context) async {
-    try {
-      await firestore
-          .collection('Users')
-          .doc(userDTO.uid)
-          .set(userDTO.toMap())
-          .then((value) => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('User registered successfully!')),
-              ));
-    } on FirebaseException catch (e) {
+    if (userDTO.validate()) {
+      try {
+        final masterKey = MasterKeyGenerator.generateKey();
+        await _UsersCollection.doc(userDTO.uid)
+            .set(userDTO.toMap(masterKey))
+            .then((value) => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('User registered successfully!')),
+                ));
+      } on FirebaseException catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message!)));
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    } else {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message!)));
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+          .showSnackBar(const SnackBar(content: Text('Invalid Data')));
     }
   }
 
   Future<void> addMasterKey(
       String uid, String groupId, BuildContext context) async {
     final masterId = const Uuid().v1();
-    final data = await firestore
-        .collection("Master Keys")
-        .where('uid', isEqualTo: uid)
-        .get();
+    final data = await _MasterKeysCollection.where('uid', isEqualTo: uid).get();
     if (data.docs.isEmpty) {
-      final result = await firestore.collection("Users").doc(uid).get();
-      if (result.data()?['key'] != null) {
-        final key = result.data()?['key'];
-        final masterkey = MasterKeyGenerator.generateKey();
-        final encryptKey = AES256Bits.encrypt(masterkey, key);
-        await firestore.collection('Master Keys').doc(masterId).set({
-          'masterId': masterId,
-          'uid': uid,
-          'groupId': groupId,
-          'key': encryptKey,
-          'dateCreated': DateTime.now().toIso8601String(),
-        }).then((value) => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Master key generated'))));
+      final key = await getUserKey(uid, context);
+      if (key != null) {
+        final masterKey = MasterKeyGenerator.generateKey();
+        final masterKeyDto = MasterKeyDTO(
+            uid: uid,
+            groupId: groupId,
+            masterId: masterId,
+            key: masterKey,
+            dateCreated: DateTime.now().toIso8601String());
+        await firestore
+            .collection('Master Keys')
+            .doc(masterId)
+            .set(masterKeyDto.toMap(key))
+            .then((value) => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Master key generated'))));
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -57,6 +68,46 @@ class FirestoreService {
   }
 
   Future<String?> createGroupForPassword(
+    String groupName,
+    String uid,
+    BuildContext context,
+  ) async {
+    final userKey = await getUserKey(uid, context);
+    if (userKey == null) {
+      return null;
+    }
+
+    final listOfGroups = await _GroupPasswordsCollection.get();
+    final groups = listOfGroups.docs;
+
+    if (groups.isNotEmpty) {
+      for (final group in groups) {
+        final masterKey = await getMasterKey(uid, group['groupId'], context);
+        if (masterKey != null) {
+          final eGroupName = decryptField(group['groupName'], masterKey);
+          if (eGroupName.toLowerCase() == groupName.toLowerCase()) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Group name already exists')),
+            );
+            final id = group['groupId'];
+            return id;
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text(
+                    'Error retrieving group master key. Please try again')),
+          );
+          return null;
+        }
+      }
+    }
+
+    final groupId = await createGroup(groupName, uid, context);
+    return groupId;
+  }
+
+  Future<String?> createGroup(
       String groupName, String uid, BuildContext context) async {
     try {
       final userKey = await getUserKey(uid, context);
@@ -64,15 +115,15 @@ class FirestoreService {
         final groupId = const Uuid().v1();
         final masterId = const Uuid().v1();
         final masterKey = MasterKeyGenerator.generateKey();
-        await firestore.collection('Master Keys').doc(masterId).set({
-          'masterId': masterId,
-          'groupId': groupId,
-          'dateCreated': DateTime.now().toIso8601String(),
-          'uid': uid,
-          'key': AES256Bits.encrypt(masterKey, userKey),
-          'key-decrypt': masterKey,
-        }).then((value) => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Group created successfully'))));
+        // ! Master
+        final masterKeyDto = MasterKeyDTO(
+            uid: uid,
+            groupId: groupId,
+            masterId: masterId,
+            key: masterKey,
+            dateCreated: DateTime.now().toIso8601String());
+        await _MasterKeysCollection.doc(masterId)
+            .set(masterKeyDto.toMap(userKey));
         // ! Group
         final groupKey = MasterKeyGenerator.generateKey();
         final groupPasswordDTO = GroupPasswordDTO(
@@ -81,12 +132,10 @@ class FirestoreService {
             dateCreated: DateTime.now().toIso8601String(),
             uid: uid,
             key: groupKey);
-        await firestore
-            .collection('Group Passwords')
-            .doc(groupId)
+        await _GroupPasswordsCollection.doc(groupId)
             .set(groupPasswordDTO.toMap(masterKey))
-            .then((value) => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Group created successfully'))));
+            .then((value) => context.goNamed('view group password',
+                queryParameters: <String, String>{'groupId': groupId}));
         return groupId;
       } else {
         return null;
@@ -112,9 +161,14 @@ class FirestoreService {
       final key = await getGroupKey(groupId, uid, context);
 
       if (key != null) {
-        await firestore.collection('Passwords').doc(passwordDTO.passwordId).set(
+        await _PasswordsCollection.doc(passwordDTO.passwordId)
+            .set(
               passwordDTO.toMap(key, groupId),
-            );
+            )
+            .then((value) => context.goNamed('view group password',
+                queryParameters: <String, String>{'groupId': groupId}))
+            .then((value) => ScaffoldMessenger.of(context)
+                .showSnackBar(const SnackBar(content: Text('Password added'))));
       } else {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Please try again')));
@@ -212,34 +266,30 @@ class FirestoreService {
     }
   }
 
-  Stream<UserModel> getUserData(String uid) {
-    return firestore
-        .collection('Users')
-        .doc(uid)
+  Stream<UserModel> getUserData(String uid, BuildContext context) {
+    return _UsersCollection.doc(uid)
         .snapshots()
         .map(UserModel.userDataFromSnapshot)
         .handleError((e) {
-      print(e);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
     });
   }
 
   // Get stream of group password
   Stream<List<GroupPassword>> getGroupPassword(String uid, context) {
-    return firestore
-        .collection('Group Passwords')
-        .where('uid', isEqualTo: uid)
+    return _GroupPasswordsCollection.where('uid', isEqualTo: uid)
         .snapshots()
         .asyncMap((snapshot) async {
       List<GroupPassword> groupPasswords = [];
       for (var doc in snapshot.docs) {
         final groupId = doc.id;
-        print(groupId);
         final masterKey = await getMasterKey(uid, groupId, context);
 
         if (masterKey != null) {
-          final groupPasswordData = await firestore
-              .collection('Group Passwords')
-              .where('groupId', isEqualTo: groupId)
+          final groupPasswordData = await _GroupPasswordsCollection.where(
+                  'groupId',
+                  isEqualTo: groupId)
               .get();
           final groupPassword = GroupPassword.groupPasswordDataFromSnapshot(
               groupPasswordData, masterKey);
@@ -254,17 +304,13 @@ class FirestoreService {
 
   Stream<GroupPassword> getGroupPasswordWithGroupId(
       String groupId, String uid, BuildContext context) {
-    return firestore
-        .collection('Group Passwords')
-        .doc(groupId)
+    return _GroupPasswordsCollection.doc(groupId)
         .snapshots()
         .asyncMap((snapshot) async {
       final masterKey = await getMasterKey(uid, groupId, context);
-      if (masterKey == null) {
-        throw Exception('Master Key is null');
-      }
+
       return GroupPassword.groupPasswordDataFromSnapshotByGroupId(
-          snapshot, masterKey);
+          snapshot, masterKey ?? '');
     }).handleError(
       (e) => ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString()))),
@@ -273,9 +319,7 @@ class FirestoreService {
 
   Stream<List<PasswordModel>> viewGroupPasswordWithKey(
       String groupId, String uid, BuildContext context) {
-    return FirebaseFirestore.instance
-        .collection('Passwords')
-        .where('groupId', isEqualTo: groupId)
+    return _PasswordsCollection.where('groupId', isEqualTo: groupId)
         .snapshots()
         .asyncMap((snapshot) async {
           final groupKey = await getGroupKey(groupId, uid, context);
@@ -295,7 +339,7 @@ class FirestoreService {
   Future<void> updateGroupName(
       String groupId, String groupName, BuildContext context) async {
     try {
-      return await firestore.collection('Group Passwords').doc(groupId).update({
+      return await _GroupPasswordsCollection.doc(groupId).update({
         'groupName': groupName,
       });
     } on FirebaseException catch (e) {
@@ -308,13 +352,10 @@ class FirestoreService {
   }
 
   // ! Delete
-  // ! Delete password with group
-  // delete password which contain groupId
+  // ! Delete password with group ID
   Future<void> deleteGroupPassword(String groupId, BuildContext context) async {
     try {
-      return await firestore
-          .collection('Passwords')
-          .where('groupId', isEqualTo: groupId)
+      return await _PasswordsCollection.where('groupId', isEqualTo: groupId)
           .get()
           .then((snapshot) {
             for (var doc in snapshot.docs) {
@@ -322,17 +363,17 @@ class FirestoreService {
             }
             // then delete group password
           })
-          .then((value) => firestore
-                  .collection('Master Keys')
-                  .where('groupId', isEqualTo: groupId)
+          .then((value) =>
+              _MasterKeysCollection.where('groupId', isEqualTo: groupId)
                   .get()
                   .then((snapshot) {
                 for (var doc in snapshot.docs) {
                   doc.reference.delete();
                 }
               }))
-          .then((value) =>
-              firestore.collection('Group Passwords').doc(groupId).delete());
+          .then((value) => _GroupPasswordsCollection.doc(groupId)
+              .delete()
+              .then((value) => Navigator.pop(context)));
     } on FirebaseException catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.message.toString())));

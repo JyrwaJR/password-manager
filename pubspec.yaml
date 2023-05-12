@@ -44,6 +44,7 @@ dependencies:
   local_auth: ^2.1.6
   pointycastle: ^3.7.3
   provider: ^6.0.5
+  shared_preferences: ^2.1.1
   uuid: ^3.0.7
 
 dev_dependencies:

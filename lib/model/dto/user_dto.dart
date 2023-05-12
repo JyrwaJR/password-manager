@@ -1,4 +1,3 @@
-
 import 'package:password_manager/export.dart';
 
 class UserDTO {
@@ -12,13 +11,27 @@ class UserDTO {
     required this.uid,
   });
 
-  Map<String, dynamic> toMap() {
-    final masterKey = MasterKeyGenerator.generateKey();
+  Map<String, dynamic> toMap(String masterKey) {
     return {
       'userName': userName,
       'email': email,
       'uid': uid,
       'key': masterKey,
     };
+  }
+
+  // validate
+  bool validate() {
+    if (userName.isEmpty || email.isEmpty || uid.isEmpty) {
+      return false;
+    }
+    if (userName.length < 3 || userName.length > 20) {
+      return false;
+    }
+    if (!EmailValidator.validate(email) == false) {
+      return false;
+    }
+
+    return true;
   }
 }

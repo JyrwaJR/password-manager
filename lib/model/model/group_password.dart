@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:password_manager/AES/256_bits/256_bits_aes.dart';
+import 'package:password_manager/export.dart';
 
 class GroupPassword {
   final String groupId;
@@ -15,31 +15,45 @@ class GroupPassword {
     required this.key,
   });
 
-  static String _decryptField(dynamic value, String key) {
-    return value != null ? AES256Bits.decrypt(value, key) : '';
-  }
-
   static List<GroupPassword> groupPasswordDataFromSnapshot(
       QuerySnapshot snapshot, String masterKey) {
     return snapshot.docs.map((doc) {
       return GroupPassword(
         groupId: doc['groupId'] ?? '',
         uid: doc['uid'] ?? '',
-        groupName: AES256Bits.decrypt(doc['groupName'], masterKey),
-        dateCreated: AES256Bits.decrypt(doc['dateCreated'], masterKey),
-        key: AES256Bits.decrypt(doc['key'], masterKey),
+        groupName: decryptField(doc['groupName'], masterKey),
+        dateCreated: decryptField(doc['dateCreated'], masterKey),
+        key: decryptField(doc['key'], masterKey),
       );
     }).toList();
   }
 
   static GroupPassword groupPasswordDataFromSnapshotByGroupId(
       DocumentSnapshot snapshot, String masterKey) {
+    if (!snapshot.exists) {
+      return GroupPassword(
+          groupId: '',
+          groupName: '',
+          dateCreated: '',
+          uid: '',
+          key: ''); // or throw an exception, depending on your needs
+    }
     return GroupPassword(
       groupId: snapshot['groupId'] ?? '',
       uid: snapshot['uid'] ?? '',
-      groupName: _decryptField(snapshot['groupName'], masterKey),
-      dateCreated: _decryptField(snapshot['dateCreated'], masterKey),
-      key: _decryptField(snapshot['key'], masterKey),
+      groupName: decryptField(snapshot['groupName'], masterKey),
+      dateCreated: decryptField(snapshot['dateCreated'], masterKey),
+      key: decryptField(snapshot['key'], masterKey),
+    );
+  }
+
+  static fromMap(dynamic data) {
+    return GroupPassword(
+      groupId: data!['groupId'] ?? '',
+      uid: data['uid'] ?? '',
+      groupName: data['groupName'] ?? '',
+      dateCreated: data['dateCreated'] ?? '',
+      key: data['key'] ?? '',
     );
   }
 }

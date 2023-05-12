@@ -5,3 +5,4 @@ export './model/group_password.dart';
 export './dto/user_dto.dart';
 export './dto/group_password_dto.dart';
 export './dto/password_dto.dart';
+export './dto/master_key_dto.dart';
