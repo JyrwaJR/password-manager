@@ -1,2 +1,9 @@
 export './bottom_navigation_bar.dart';
 export './tempo.dart';
+export './brand_title.dart';
+export './brand_password_display.dart';
+export './brand_text_with_switch.dart';
+export './app_bar_title.dart';
+export './brand_button.dart';
+export './brand_slider.dart';
+export './brand_alert_dialog.dart';

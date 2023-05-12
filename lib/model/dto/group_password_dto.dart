@@ -1,3 +1,5 @@
+import 'package:password_manager/export.dart';
+
 class GroupPasswordDTO {
   final String groupId;
   final String groupName;
@@ -12,13 +14,14 @@ class GroupPasswordDTO {
     required this.key,
   });
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap(String masterKey) {
     return {
       'groupId': groupId,
-      'groupName': groupName,
-      'dateCreated': dateCreated,
       'uid': uid,
-      'key': key,
+      'groupName': encryptField(groupName, masterKey),
+      'dateCreated': encryptField(dateCreated, masterKey),
+      'key': encryptField(key, masterKey),
+      'key2': key,
     };
   }
 }

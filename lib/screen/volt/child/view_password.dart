@@ -10,6 +10,6 @@ class ViewPassword extends StatefulWidget {
 class _ViewPasswordState extends State<ViewPassword> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return const Scaffold();
   }
 }

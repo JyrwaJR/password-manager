@@ -1,94 +1,125 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 
 class LocalAuthService {
-  final LocalAuthentication _localAuth = LocalAuthentication();
+  static final instance = LocalAuthentication();
 
-  Future<void> checkBiometrics(BuildContext context) async {
-    bool canCheckBiometrics = await _localAuth.canCheckBiometrics;
-
-    if (!canCheckBiometrics) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unfortunately, it seems like your device does not support biometric authentication. This app requires a biometric authentication method such as fingerprint to ensure security. We apologize for any inconvenience this may cause.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    List<BiometricType> availableBiometrics =
-        await _localAuth.getAvailableBiometrics();
-
-    if (availableBiometrics.isEmpty ||
-        availableBiometrics.contains(BiometricType.fingerprint)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'It looks like biometric authentication is not registered on this device. To use this app, please register a biometric authentication method such as fingerprint. Without biometric authentication, this app cannot be used for security reasons. Thank you for your understanding.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    bool authenticated = await _authenticate(context);
-
-    if (authenticated) {
-      await Future.delayed(Duration.zero);
-      context.goNamed('home');
-    }
+  // is device supported
+  Future<bool> isDeviceSupported() async {
+    return await instance.canCheckBiometrics ? true : false;
   }
 
-  Future<bool> _authenticate(BuildContext context) async {
-    int failedAttempts = 0;
-    bool authenticated = false;
-    while (failedAttempts < 5 && !authenticated) {
-      try {
-        authenticated = await _localAuth.authenticate(
-            localizedReason: '''Verify that it's you''',
-            options: const AuthenticationOptions(
-              biometricOnly: true,
-            ));
-      } on PlatformException catch (e) {
-        _showErrorDialog(context, e.message!);
-        return false;
-      } catch (e) {
+  Future<bool> isBiometricAuthenticationEnabled() async {
+    List<BiometricType> availableBiometrics =
+        await instance.getAvailableBiometrics();
+    return availableBiometrics.isNotEmpty;
+  }
+
+  Future<List<BiometricType>> getAvailableBiometrics() async {
+    List<BiometricType> availableBiometrics =
+        await instance.getAvailableBiometrics();
+    return availableBiometrics;
+  }
+
+  // check if device fingerprint is available
+  Future<bool> isFingerprintAvailable() async {
+    List<BiometricType> availableBiometrics =
+        await instance.getAvailableBiometrics();
+    if (!availableBiometrics.contains(BiometricType.fingerprint)) {
+      return true;
+    }
+    return false;
+  }
+
+  final int _lockoutTimeInSeconds = 30;
+
+  Future<void> _showBiometricLockedOutAlert(
+      BuildContext context, String message) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Biometric Locked Out'),
+          content: Text(
+              'You have exceeded the maximum number of attempts. Please try again after $_lockoutTimeInSeconds seconds.\n\n$message'),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () => SystemNavigator.pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showBiometricAlert(BuildContext context, String message) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Biometric Locked Out'),
+          content: Text(
+              '\n$message\n\nPlease try again after $_lockoutTimeInSeconds seconds.'),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () => SystemNavigator.pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool> authenticateWithBiometrics(BuildContext context) async {
+    try {
+      if (!await isDeviceSupported()) {
+        await _showBiometricAlert(
+            context, 'Device does not support biometric authentication.');
         return false;
       }
 
-      failedAttempts++;
-    }
+      bool isBiometricEnabled = await isBiometricAuthenticationEnabled();
+      if (!isBiometricEnabled) {
+        await _showBiometricAlert(context,
+            'Biometric authentication is not enabled or your account has biometric LockedOut.');
+        return false;
+      }
 
-    if (!authenticated) {
-      _showErrorDialog(context, 'You need to authenticate to use this app.');
-    }
-    return authenticated;
-  }
+      List<BiometricType> availableBiometrics = await getAvailableBiometrics();
+      if (availableBiometrics.contains(BiometricType.fingerprint)) {
+        await _showBiometricAlert(
+            context, 'Fingerprint biometric authentication is not available.');
+        return false;
+      }
 
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(
-          'Oops!',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+      bool isAuthenticated = await instance.authenticate(
+          localizedReason: 'Authenticate with biometrics to continue',
+          options: const AuthenticationOptions(
+            useErrorDialogs: true,
+            stickyAuth: true,
+            biometricOnly: true,
+          ));
+      if (isAuthenticated) {
+        return true;
+      } else {
+        return false;
+      }
+    } on PlatformException catch (e) {
+      if (e.code == 'lockout') {
+        await _showBiometricLockedOutAlert(context, e.message!);
+      } else if (e.code == 'NotEnrolled') {
+        await _showBiometricAlert(
+            context, 'No biometric is enrolled on this device.');
+      } else if (e.code == 'PasscodeNotSet') {
+        await _showBiometricAlert(
+            context, 'Passcode is not set on this device.');
+      } else {
+        await _showBiometricAlert(context, 'Authentication failed.');
+      }
+      return false;
+    }
   }
 }

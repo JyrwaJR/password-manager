@@ -83,14 +83,16 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
         if (widget.uid == 'null') {
           context.go(context.namedLocation('email'));
         } else {
-          context.go(context.namedLocation('home'));
+          context.go(context.namedLocation('home',
+              queryParameters: <String, String>{'uid': widget.uid}));
         }
         break;
       case 1:
         if (widget.uid == 'null') {
           context.go(context.namedLocation('email'));
         } else {
-          context.go(context.namedLocation('volt'));
+          context.go(context.namedLocation('volt',
+              queryParameters: <String, String>{'uid': widget.uid}));
         }
         break;
       case 2:

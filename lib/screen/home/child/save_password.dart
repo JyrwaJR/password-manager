@@ -1,7 +1,3 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:password_manager/export.dart';
@@ -21,7 +17,6 @@ class _SavePasswordState extends State<SavePassword> {
   String? groupName;
   String? userName;
   String? website;
-  String? description;
   bool isLoading = false;
 
   void _handleCreateNewGroupChanged(bool value) {
@@ -53,19 +48,18 @@ class _SavePasswordState extends State<SavePassword> {
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: ListView(
             children: [
-              OneSavePassword(uid: uid),
+              BrandTitle(title: 'Save Passwords', id: uid!),
               const SizedBox(height: 20),
-              TwoSavePassword(generatedPassword: widget.generatedPassword),
+              BrandPasswordDisplay(password: widget.generatedPassword),
               const SizedBox(height: 20),
-              Four(
-                  onIncludeSymbolChanged: _handleCreateNewGroupChanged,
+              BrandTextWithSwitch(
+                  onChanged: _handleCreateNewGroupChanged,
                   title: 'Create New Group'),
               const SizedBox(height: 20),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Column(
-                    // mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
@@ -110,7 +104,7 @@ class _SavePasswordState extends State<SavePassword> {
                                       hintText: 'Enter a group name')),
                             )
                           : ThreeSavePassword(
-                              uid: uid ?? '',
+                              uid: uid,
                               onChanged: onGroupSelected,
                             ),
                       const SizedBox(height: 20),
@@ -196,40 +190,40 @@ class _SavePasswordState extends State<SavePassword> {
                       setState(() {
                         isLoading = true;
                       });
+                      FocusScope.of(context).unfocus();
                       _formKey.currentState!.save();
                       if (_formKey.currentState!.validate()) {
                         final passwordId = const Uuid().v1();
                         if (_createNewGroup) {
                           final groupId = await store.createGroupForPassword(
-                              groupName!, uid!, context);
+                              groupName!, uid, context);
                           if (!mounted) {
                             return;
                           }
                           await store
                               .addPassword(
-                                  PasswordDTO(
-                                    passwordId: passwordId,
-                                    password: widget.generatedPassword,
-                                    userName: userName!,
-                                    website: website!,
-                                  ),
-                                  groupId!,
-                                  uid,
-                                  context)
+                                PasswordDTO(
+                                  passwordId: passwordId,
+                                  password: widget.generatedPassword,
+                                  userName: userName!,
+                                  website: website!,
+                                ),
+                                groupId ?? '',
+                                uid,
+                                context,
+                              )
                               .then((value) => Navigator.pop(context));
                         } else {
-                          await store
-                              .addPassword(
-                                  PasswordDTO(
-                                    passwordId: passwordId,
-                                    password: widget.generatedPassword,
-                                    userName: userName!,
-                                    website: website!,
-                                  ),
-                                  _selectedGroupId!,
-                                  uid!,
-                                  context)
-                              .then((value) => Navigator.pop(context));
+                          await store.addPassword(
+                              PasswordDTO(
+                                passwordId: passwordId,
+                                password: widget.generatedPassword,
+                                userName: userName!,
+                                website: website!,
+                              ),
+                              _selectedGroupId!,
+                              uid,
+                              context);
 
                           setState(() {
                             isLoading = false;
@@ -280,7 +274,7 @@ class _ThreeSavePasswordState extends State<ThreeSavePassword> {
   Widget build(BuildContext context) {
     final store = FirestoreService();
     return StreamBuilder<List<GroupPassword>>(
-      stream: store.getGroupPassword(widget.uid),
+      stream: store.getGroupPassword(widget.uid, context),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Padding(
@@ -361,83 +355,6 @@ class _ThreeSavePasswordState extends State<ThreeSavePassword> {
           return const Center(child: CircularProgressIndicator());
         }
       },
-    );
-  }
-}
-
-class TwoSavePassword extends StatelessWidget {
-  const TwoSavePassword({
-    super.key,
-    required this.generatedPassword,
-  });
-
-  final String generatedPassword;
-
-  @override
-  Widget build(BuildContext context) {
-    return Two(generatedPassword: generatedPassword);
-  }
-}
-
-class OneSavePassword extends StatelessWidget {
-  const OneSavePassword({
-    super.key,
-    required this.uid,
-  });
-
-  final String? uid;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Save Password',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-              letterSpacing: 1, fontSize: 30, fontWeight: FontWeight.bold),
-        ),
-        CircleAvatar(
-          radius: 34,
-          backgroundColor: Theme.of(context).primaryColor,
-          child: CircleAvatar(
-            radius: 30,
-            child: CachedNetworkImage(
-              imageUrl: "https://api.multiavatar.com/$uid Bond.png",
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              fit: BoxFit.cover,
-              errorWidget: (context, url, error) {
-                if (error is SocketException) {
-                  return const Center(child: Icon(Icons.error_outline));
-                } else if (error is TimeoutException) {
-                  return const Center(child: Text('Request timed out'));
-                } else {
-                  return const Center(child: Text('Failed to load image'));
-                }
-              },
-              imageBuilder: (context, imageProvider) {
-                return Image.network(
-                  "https://api.multiavatar.com/$uid Bond.png",
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    if (error is SocketException) {
-                      return const Center(child: Icon(Icons.error_outline));
-                    } else if (error is TimeoutException) {
-                      return const Center(child: Text('Request timed out'));
-                    } else {
-                      return const Center(child: Text('Failed to load image'));
-                    }
-                  },
-                );
-              },
-            ),
-          ),
-        )
-      ],
     );
   }
 }

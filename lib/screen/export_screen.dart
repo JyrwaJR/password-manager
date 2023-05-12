@@ -16,6 +16,7 @@ export 'volt/volt.dart';
 // ! child screen
 export 'volt/child/view_password.dart';
 export 'volt/child/view_group_password.dart';
+export 'volt/child/add_credential.dart';
 // ! volt end
 
 // ! profile start

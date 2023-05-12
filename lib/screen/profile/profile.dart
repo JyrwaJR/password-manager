@@ -44,7 +44,7 @@ class _ProfileState extends State<Profile> {
     final auth = FirebaseAuthService();
     final store = FirestoreService();
     return StreamBuilder<UserModel>(
-      stream: store.getUserData(widget.uid),
+      stream: store.getUserData(widget.uid, context),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -57,15 +57,7 @@ class _ProfileState extends State<Profile> {
             final user = snapshot.data!;
             return Scaffold(
               appBar: AppBar(
-                title: const Text(
-                  'PROFILE',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    letterSpacing: 3,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                title: const AppBarTitle(title: "PROFILE"),
                 actions: [
                   TextButton(
                     onPressed: () async {
@@ -79,7 +71,7 @@ class _ProfileState extends State<Profile> {
                               onPressed: () async {
                                 await auth.signOut(context).then((value) {
                                   Navigator.pop(context);
-                                  context.goNamed('/');
+                                  context.go('/');
                                 });
                               },
                               child: const Text('Yes'),
