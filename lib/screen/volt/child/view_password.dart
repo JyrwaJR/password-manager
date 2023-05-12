@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ViewPassword extends StatefulWidget {
@@ -11,6 +10,6 @@ class ViewPassword extends StatefulWidget {
 class _ViewPasswordState extends State<ViewPassword> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return const Scaffold();
   }
 }
