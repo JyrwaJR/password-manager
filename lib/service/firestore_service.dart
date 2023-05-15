@@ -7,7 +7,7 @@ import 'package:password_manager/export.dart';
 import 'package:uuid/uuid.dart';
 
 class FirestoreService {
-  final firestore = FirebaseFirestore.instance;
+  static final firestore = FirebaseFirestore.instance;
   final CollectionReference _UsersCollection =
       FirebaseFirestore.instance.collection('Users');
   final CollectionReference _GroupPasswordsCollection =
@@ -271,6 +271,7 @@ class FirestoreService {
         .snapshots()
         .map(UserModel.userDataFromSnapshot)
         .handleError((e) {
+      print(e);
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
     });

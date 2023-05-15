@@ -39,7 +39,7 @@ class BrandPasswordDisplay extends StatelessWidget {
                 height: 100,
                 child: Center(
                   child: Text(
-                    password.isNotEmpty ? password : 'PLEASE GENERATE',
+                    password.isNotEmpty ? password : 'Please Generate',
                     maxLines: 2,
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
@@ -52,11 +52,11 @@ class BrandPasswordDisplay extends StatelessWidget {
               ),
               Center(
                 child: Text(
-                  'Tap here copy generated password',
+                  'Tap here copy',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
                       color: Theme.of(context).hintColor),
                 ),
               )

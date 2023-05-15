@@ -23,7 +23,7 @@ class _ChangePasswordState extends State<ChangePassword> {
 
   @override
   void initState() {
-    _emailController.text = auth.currentUser!.email ?? '';
+    // _emailController.text = auth.currentUser!.email ?? '';
     super.initState();
   }
 

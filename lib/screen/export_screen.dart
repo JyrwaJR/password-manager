@@ -12,11 +12,14 @@ export './home/child/save_password.dart';
 // ! home end
 
 // ! volt start
-export 'volt/volt.dart';
+export 'vault/vault.dart';
 // ! child screen
-export 'volt/child/view_password.dart';
-export 'volt/child/view_group_password.dart';
-export 'volt/child/add_credential.dart';
+export 'vault/child/view_password.dart';
+export 'vault/child/view_group_password.dart';
+export 'vault/child/add_credential.dart';
+export 'vault/child/group_password.dart';
+export 'vault/child/note_group.dart';
+export 'vault/pin/pin_password.dart';
 // ! volt end
 
 // ! profile start

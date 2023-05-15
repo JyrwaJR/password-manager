@@ -1,11 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:password_manager/export.dart';
 import 'package:password_manager/widget/save_password_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Home extends StatefulWidget {
   const Home({
@@ -101,65 +99,67 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-
     return Scaffold(
       appBar: AppBar(
         title: const AppBarTitle(title: 'DASHBOARD'),
       ),
-      body: Container(
+      body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: ListView(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                BrandTitle(title: 'Generate Passwords', id: uid!),
-                const SizedBox(height: 15),
-                BrandPasswordDisplay(password: generatedPassword),
-                const SizedBox(height: 10),
-                BrandSwitch(
-                    length: passLength, onLengthChanged: _updatePasswordLength),
-                const SizedBox(height: 15),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    'SETTING',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).hintColor,
-                    ),
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              BrandTitle(title: 'Generate Passwords', id: uid!),
+              const SizedBox(height: 15),
+              BrandPasswordDisplay(password: generatedPassword),
+              const SizedBox(height: 10),
+              BrandSwitch(
+                  length: passLength, onLengthChanged: _updatePasswordLength),
+              const SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  'SETTING',
+                  style: TextStyle(
+                    fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
+                    fontWeight:
+                        Theme.of(context).textTheme.labelLarge?.fontWeight,
+                    color: Theme.of(context)
+                        .textTheme
+                        .labelLarge
+                        ?.color
+                        ?.withOpacity(0.6),
                   ),
                 ),
-                const SizedBox(height: 10),
-                BrandTextWithSwitch(
-                    title: 'Include Numbers',
-                    onChanged: _handleIncludeNumberChanged),
-                BrandTextWithSwitch(
-                    title: 'Include Letters',
-                    onChanged: _handleIncludeLetterChanged),
-                BrandTextWithSwitch(
-                    title: 'Include Symbols',
-                    onChanged: _handleIncludeSymbolChanged),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                BrandButton(
-                  onPressed: _generate,
-                  title: 'GENERATE ',
-                  width: MediaQuery.of(context).size.width * 0.7,
-                ),
-                SavePasswordButton(
-                    onPressed: _onPressedSavePassword, title: 'SAVE'),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+              ),
+              const SizedBox(height: 10),
+              BrandTextWithSwitch(
+                  title: 'Include Numbers',
+                  onChanged: _handleIncludeNumberChanged),
+              BrandTextWithSwitch(
+                  title: 'Include Letters',
+                  onChanged: _handleIncludeLetterChanged),
+              BrandTextWithSwitch(
+                  title: 'Include Symbols',
+                  onChanged: _handleIncludeSymbolChanged),
+            ],
+          ),
+          const BrandSizeBox(height: 20),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              BrandButton(
+                onPressed: _generate,
+                title: 'GENERATE ',
+                width: MediaQuery.of(context).size.width * 0.7,
+              ),
+              SavePasswordButton(
+                  onPressed: _onPressedSavePassword, title: 'SAVE'),
+            ],
+          ),
+          const BrandSizeBox(height: 5),
+        ],
       ),
     );
   }

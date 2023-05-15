@@ -65,7 +65,7 @@ class AppRouter {
           GoRoute(
             path: '/volt',
             name: 'volt',
-            builder: (context, state) => const Volt(),
+            builder: (context, state) => const Vault(),
             routes: [
               GoRoute(
                 path: 'view-group-password',
@@ -93,7 +93,8 @@ class AppRouter {
               GoRoute(
                 path: 'update-profile',
                 name: 'update profile',
-                builder: (context, state) => const UpdateProfile(),
+                builder: (context, state) =>
+                    UpdateProfile(uid: state.queryParameters['uid']!),
               ),
               GoRoute(
                 path: 'account-settings',

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:password_manager/constant/export_constant.dart';
 
 class BrandTitle extends StatelessWidget {
   const BrandTitle({
@@ -18,7 +19,7 @@ class BrandTitle extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          title,
+          capitalizeFirstLetter(title),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(

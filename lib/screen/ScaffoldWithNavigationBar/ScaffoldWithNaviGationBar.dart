@@ -1,7 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:password_manager/export.dart';
 
 class ScaffoldWithBottomNavigationBar extends StatefulWidget {
@@ -20,26 +18,26 @@ class _ScaffoldWithBottomNavigationBarState
     extends State<ScaffoldWithBottomNavigationBar> {
   // Local authentication service
 
-  final LocalAuthService local = LocalAuthService();
-  void isAuthenticate() async {
-    if (!await local.authenticateWithBiometrics(context)) {
-      return SystemNavigator.pop();
-    }
-    return;
-  }
+  // final LocalAuthService local = LocalAuthService();
+  // void isAuthenticate() async {
+  //   if (!await local.authenticateWithBiometrics(context)) {
+  //     return SystemNavigator.pop();
+  //   }
+  //   return;
+  // }
 
-  @override
-  void initState() {
-    super.initState();
-    isAuthenticate();
-    // Reset the authentication status when the app is resumed from the recent view
-    SystemChannels.lifecycle.setMessageHandler((msg) async {
-      if (msg == AppLifecycleState.resumed.toString()) {
-        isAuthenticate();
-      }
-      return null;
-    });
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   isAuthenticate();
+  //   // Reset the authentication status when the app is resumed from the recent view
+  //   SystemChannels.lifecycle.setMessageHandler((msg) async {
+  //     if (msg == AppLifecycleState.resumed.toString()) {
+  //       isAuthenticate();
+  //     }
+  //     return null;
+  //   });
+  // }
 
   final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 

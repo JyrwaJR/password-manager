@@ -46,11 +46,11 @@ class _PasswordState extends State<Password> {
               const SizedBox(
                 height: 20,
               ),
-              const Text(
+              Text(
                 "Password goes here",
                 style: TextStyle(
-                  fontSize: 60,
-                  fontWeight: FontWeight.w600,
+                  fontSize: Theme.of(context).textTheme.displayLarge?.fontSize,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(
@@ -76,9 +76,6 @@ class _PasswordState extends State<Password> {
                   return null;
                 },
                 obscureText: !_isPasswordVisible,
-                style: const TextStyle(
-                  color: Colors.black87,
-                ),
                 decoration: InputDecoration(
                   labelText: 'Password',
                   hintText: '**********',
@@ -94,21 +91,43 @@ class _PasswordState extends State<Password> {
                             _isPasswordVisible
                                 ? Icons.visibility
                                 : Icons.visibility_off,
-                            color: Colors.black,
                           ),
                         ),
-                  labelStyle: const TextStyle(
-                    color: Colors.black,
-                  ),
                 ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  TextButton(
+                      onPressed: () => context
+                          .push(context.namedLocation('change password')),
+                      child: Text(
+                        'forget password?',
+                        style: TextStyle(
+                          fontSize:
+                              Theme.of(context).textTheme.labelLarge?.fontSize,
+                        ),
+                      )),
+                ],
               ),
               const SizedBox(
                 height: 30,
               ),
               SizedBox(
-                height: 55,
+                height: 60,
                 width: MediaQuery.of(context).size.width,
                 child: ElevatedButton(
+                    style: ButtonStyle(
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                      ),
+                    ),
                     onPressed: _isLoading
                         ? null
                         : () async {
@@ -156,15 +175,25 @@ class _PasswordState extends State<Password> {
                               color: Theme.of(context).scaffoldBackgroundColor,
                             ),
                           )
-                        : const Text('Continue')),
+                        : Text(
+                            'Continue'.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.fontSize,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                          )),
               ),
               const SizedBox(
                 height: 30,
               ),
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
+                  const Expanded(
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       child: Divider(
@@ -174,9 +203,11 @@ class _PasswordState extends State<Password> {
                   ),
                   Text(
                     "or",
-                    style: TextStyle(),
+                    style: TextStyle(
+                        fontSize:
+                            Theme.of(context).textTheme.labelMedium?.fontSize),
                   ),
-                  Expanded(
+                  const Expanded(
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       child: Divider(
@@ -192,15 +223,20 @@ class _PasswordState extends State<Password> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     "Don't have an account?",
-                    style: TextStyle(),
+                    style: TextStyle(
+                        fontSize:
+                            Theme.of(context).textTheme.labelLarge?.fontSize),
                   ),
                   TextButton(
                     onPressed: () =>
                         context.go(context.namedLocation('register')),
-                    child: const Text(
+                    child: Text(
                       "Sign Up",
+                      style: TextStyle(
+                          fontSize:
+                              Theme.of(context).textTheme.labelLarge?.fontSize),
                     ),
                   ),
                 ],

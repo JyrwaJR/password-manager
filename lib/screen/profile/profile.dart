@@ -47,11 +47,7 @@ class _ProfileState extends State<Profile> {
       stream: store.getUserData(widget.uid, context),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Colors.red,
-            ),
-          );
+          return const ProfileShimmer();
         } else if (snapshot.connectionState == ConnectionState.active) {
           if (snapshot.hasData && snapshot.data != null) {
             final user = snapshot.data!;
@@ -158,40 +154,12 @@ class _ProfileState extends State<Profile> {
               ),
             );
           } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const ProfileShimmer();
           }
         } else {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Colors.red,
-            ),
-          );
+          return const ProfileShimmer();
         }
       },
-    );
-  }
-}
-
-class Alert extends StatelessWidget {
-  const Alert({
-    required this.title,
-    super.key,
-  });
-  final String title;
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(title),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('ok'),
-        ),
-      ],
     );
   }
 }
@@ -274,9 +242,9 @@ class OneProfile extends StatelessWidget {
                   if (error is SocketException) {
                     return const Center(child: Icon(Icons.error_outline));
                   } else if (error is TimeoutException) {
-                    return const Center(child: Text('Request timed out'));
+                    return const Center(child: Icon(Icons.error));
                   } else {
-                    return const Center(child: Text('Failed to load image'));
+                    return const Center(child: Icon(Icons.error));
                   }
                 },
                 imageBuilder: (context, imageProvider) {
@@ -287,10 +255,9 @@ class OneProfile extends StatelessWidget {
                       if (error is SocketException) {
                         return const Center(child: Icon(Icons.error_outline));
                       } else if (error is TimeoutException) {
-                        return const Center(child: Text('Request timed out'));
+                        return const Center(child: Icon(Icons.error));
                       } else {
-                        return const Center(
-                            child: Text('Failed to load image'));
+                        return const Center(child: Icon(Icons.error));
                       }
                     },
                   );
@@ -324,42 +291,68 @@ class OneProfile extends StatelessWidget {
   }
 }
 
-class OneSkell extends StatelessWidget {
-  const OneSkell({
+class ProfileShimmer extends StatelessWidget {
+  const ProfileShimmer({
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 85,
-            backgroundColor: Theme.of(context).primaryColor,
-            child: const CircleAvatar(
-              radius: 80,
+    return Scaffold(
+      appBar: AppBar(
+        title: const AppBarTitle(title: 'profile'),
+      ),
+      body: SizedBox(
+        child: ListView(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 85,
+                  backgroundColor: Theme.of(context).highlightColor,
+                  child: const CircleAvatar(
+                    radius: 80,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  height: 20,
+                  width: 200,
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).highlightColor,
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                const SizedBox(height: 2),
+                Container(
+                  height: 20,
+                  width: 250,
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).highlightColor,
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            height: 20,
-            width: 200,
-            decoration: BoxDecoration(
-                color: Theme.of(context).highlightColor,
-                borderRadius: BorderRadius.circular(12)),
-          ),
-          const SizedBox(height: 2),
-          Container(
-            height: 20,
-            width: 250,
-            decoration: BoxDecoration(
-                color: Theme.of(context).highlightColor,
-                borderRadius: BorderRadius.circular(12)),
-          ),
-        ],
+            const SizedBox(
+              height: 20,
+            ),
+            ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              shrinkWrap: true,
+              itemCount: 8,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (BuildContext context, int index) {
+                return Card(
+                  color: Theme.of(context).highlightColor.withOpacity(1),
+                  child: const SizedBox(
+                    height: 70,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

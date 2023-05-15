@@ -32,11 +32,63 @@ class _SavePasswordState extends State<SavePassword> {
   }
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final store = FirestoreService();
+  final auth = FirebaseAuth.instance;
+  void _onSavePassword(String uid) async {
+    setState(() {
+      isLoading = true;
+    });
+    FocusScope.of(context).unfocus();
+    _formKey.currentState!.save();
+    if (_formKey.currentState!.validate()) {
+      final passwordId = const Uuid().v1();
+      if (_createNewGroup) {
+        final groupId =
+            await store.createGroupForPassword(groupName!, uid, context);
+        if (!mounted) {
+          return;
+        }
+        await store
+            .addPassword(
+              PasswordDTO(
+                passwordId: passwordId,
+                password: widget.generatedPassword,
+                userName: userName!,
+                website: website!,
+              ),
+              groupId ?? '',
+              uid,
+              context,
+            )
+            .then((value) => Navigator.pop(context));
+      } else {
+        await store.addPassword(
+            PasswordDTO(
+              passwordId: passwordId,
+              password: widget.generatedPassword,
+              userName: userName!,
+              website: website!,
+            ),
+            _selectedGroupId!,
+            uid,
+            context);
+
+        setState(() {
+          isLoading = false;
+        });
+      }
+      setState(() {
+        isLoading = false;
+      });
+    }
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final auth = FirebaseAuth.instance;
     final uid = auth.currentUser?.uid;
-    final store = FirestoreService();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Back'),
@@ -67,9 +119,16 @@ class _SavePasswordState extends State<SavePassword> {
                         child: Text(
                           'Settings',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Theme.of(context).hintColor),
+                            fontSize: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.fontSize,
+                            fontWeight: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.fontWeight,
+                            color: Theme.of(context).hintColor,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -154,7 +213,7 @@ class _SavePasswordState extends State<SavePassword> {
                                 return 'Please enter a website';
                               }
                               if (value.length < 3) {
-                                return 'Name must b more in length';
+                                return 'Name must be more in length';
                               }
                               if (value.contains(' ')) {
                                 return 'Please enter a valid website';
@@ -176,73 +235,31 @@ class _SavePasswordState extends State<SavePassword> {
               ),
               const SizedBox(height: 10),
               SizedBox(
-                width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                    style: ButtonStyle(
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
+                  style: ButtonStyle(
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
                       ),
                     ),
-                    onPressed: () async {
-                      setState(() {
-                        isLoading = true;
-                      });
-                      FocusScope.of(context).unfocus();
-                      _formKey.currentState!.save();
-                      if (_formKey.currentState!.validate()) {
-                        final passwordId = const Uuid().v1();
-                        if (_createNewGroup) {
-                          final groupId = await store.createGroupForPassword(
-                              groupName!, uid, context);
-                          if (!mounted) {
-                            return;
-                          }
-                          await store
-                              .addPassword(
-                                PasswordDTO(
-                                  passwordId: passwordId,
-                                  password: widget.generatedPassword,
-                                  userName: userName!,
-                                  website: website!,
-                                ),
-                                groupId ?? '',
-                                uid,
-                                context,
-                              )
-                              .then((value) => Navigator.pop(context));
-                        } else {
-                          await store.addPassword(
-                              PasswordDTO(
-                                passwordId: passwordId,
-                                password: widget.generatedPassword,
-                                userName: userName!,
-                                website: website!,
-                              ),
-                              _selectedGroupId!,
-                              uid,
-                              context);
-
-                          setState(() {
-                            isLoading = false;
-                          });
-                        }
-                        setState(() {
-                          isLoading = false;
-                        });
-                      }
-                      setState(() {
-                        isLoading = false;
-                      });
-                    },
-                    child: isLoading
-                        ? CircularProgressIndicator(
-                            color: Theme.of(context).scaffoldBackgroundColor)
-                        : const Text('SAVE PASSWORD',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold))),
+                  ),
+                  onPressed: isLoading ? null : () => _onSavePassword(uid),
+                  child: isLoading
+                      ? CircularProgressIndicator(
+                          color: Theme.of(context).scaffoldBackgroundColor)
+                      : Text(
+                          'SAVE PASSWORD',
+                          style: TextStyle(
+                            fontSize: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.fontSize,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                ),
               ),
               const SizedBox(height: 10),
             ],

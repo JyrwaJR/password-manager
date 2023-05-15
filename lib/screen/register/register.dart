@@ -1,4 +1,3 @@
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -50,11 +49,11 @@ class _RegisterState extends State<Register> {
               const SizedBox(
                 height: 20,
               ),
-              const Text(
+              Text(
                 "Please enter your detail",
                 style: TextStyle(
-                  fontSize: 60,
-                  fontWeight: FontWeight.w600,
+                  fontSize: Theme.of(context).textTheme.displayLarge?.fontSize,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(
@@ -88,9 +87,6 @@ class _RegisterState extends State<Register> {
                     value = _nameController.text;
                   });
                 },
-                style: const TextStyle(
-                  color: Colors.black87,
-                ),
                 decoration: InputDecoration(
                   filled: true,
                   labelText: 'User Name',
@@ -103,12 +99,8 @@ class _RegisterState extends State<Register> {
                           },
                           icon: const Icon(
                             Icons.clear_rounded,
-                            color: Colors.black,
                           ),
                         ),
-                  labelStyle: const TextStyle(
-                    color: Colors.black,
-                  ),
                 ),
               ),
               const SizedBox(
@@ -144,12 +136,8 @@ class _RegisterState extends State<Register> {
                           },
                           icon: const Icon(
                             Icons.clear_rounded,
-                            color: Colors.black,
                           ),
                         ),
-                  labelStyle: const TextStyle(
-                    color: Colors.black,
-                  ),
                 ),
               ),
               const SizedBox(
@@ -179,9 +167,6 @@ class _RegisterState extends State<Register> {
                   return null;
                 },
                 obscureText: !_isPasswordVisible,
-                style: const TextStyle(
-                  color: Colors.black87,
-                ),
                 decoration: InputDecoration(
                   labelText: 'Password',
                   hintText: '**********',
@@ -197,12 +182,8 @@ class _RegisterState extends State<Register> {
                             _isPasswordVisible
                                 ? Icons.visibility
                                 : Icons.visibility_off,
-                            color: Colors.black,
                           ),
                         ),
-                  labelStyle: const TextStyle(
-                    color: Colors.black,
-                  ),
                 ),
               ),
               const SizedBox(
@@ -232,9 +213,6 @@ class _RegisterState extends State<Register> {
                   return null;
                 },
                 obscureText: !_isPasswordVisible,
-                style: const TextStyle(
-                  color: Colors.black87,
-                ),
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
                   hintText: '**********',
@@ -250,21 +228,24 @@ class _RegisterState extends State<Register> {
                             _isPasswordVisible
                                 ? Icons.visibility
                                 : Icons.visibility_off,
-                            color: Colors.black,
                           ),
                         ),
-                  labelStyle: const TextStyle(
-                    color: Colors.black,
-                  ),
                 ),
               ),
               const SizedBox(
                 height: 30,
               ),
               SizedBox(
-                height: 55,
+                height: 60,
                 width: MediaQuery.of(context).size.width,
                 child: ElevatedButton(
+                    style: ButtonStyle(
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                      ),
+                    ),
                     onPressed: _isLoading
                         ? null
                         : () async {
@@ -319,7 +300,17 @@ class _RegisterState extends State<Register> {
                         ? const Center(
                             child:
                                 CircularProgressIndicator(color: Colors.white))
-                        : const Text('Submit')),
+                        : Text(
+                            'SUBMIT',
+                            style: TextStyle(
+                              fontSize: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.fontSize,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                          )),
               ),
               const SizedBox(
                 height: 50,
@@ -355,13 +346,20 @@ class _RegisterState extends State<Register> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     "Already have an account?",
-                    style: TextStyle(),
+                    style: TextStyle(
+                        fontSize:
+                            Theme.of(context).textTheme.labelLarge?.fontSize),
                   ),
                   TextButton(
                     onPressed: () => context.go(context.namedLocation('email')),
-                    child: const Text("Sign in"),
+                    child: Text(
+                      "Sign in",
+                      style: TextStyle(
+                          fontSize:
+                              Theme.of(context).textTheme.labelLarge?.fontSize),
+                    ),
                   ),
                 ],
               ),

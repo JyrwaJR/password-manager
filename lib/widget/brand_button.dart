@@ -27,11 +27,9 @@ class BrandButton extends StatelessWidget {
             ),
           ),
         ),
-        onPressed: () {
-          onPressed();
-        },
+        onPressed: onPressed,
         child: Text(
-          title,
+          title.toUpperCase(),
           maxLines: 1,
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,

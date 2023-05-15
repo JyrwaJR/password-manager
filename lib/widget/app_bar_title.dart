@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:password_manager/constant/export_constant.dart';
 
 class AppBarTitle extends StatelessWidget {
   const AppBarTitle({
@@ -9,7 +10,7 @@ class AppBarTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      title,
+      capitalizeFirstLetter(title),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: const TextStyle(letterSpacing: 3, fontWeight: FontWeight.bold),

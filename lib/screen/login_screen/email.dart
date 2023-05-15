@@ -39,11 +39,11 @@ class _EmailState extends State<Email> {
               const SizedBox(
                 height: 20,
               ),
-              const Text(
+              Text(
                 "Enter your email",
                 style: TextStyle(
-                  fontSize: 60,
-                  fontWeight: FontWeight.w600,
+                  fontSize: Theme.of(context).textTheme.displayLarge?.fontSize,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(
@@ -69,9 +69,6 @@ class _EmailState extends State<Email> {
                     value = _emailController.text;
                   });
                 },
-                style: const TextStyle(
-                  color: Colors.black87,
-                ),
                 decoration: InputDecoration(
                   labelText: 'Email',
                   hintText: 'youremail@domain.com',
@@ -83,30 +80,21 @@ class _EmailState extends State<Email> {
                           },
                           icon: const Icon(
                             Icons.clear_rounded,
-                            color: Colors.black,
                           ),
                         ),
-                  labelStyle: const TextStyle(
-                    color: Colors.black,
-                  ),
                 ),
               ),
               const SizedBox(
                 height: 30,
               ),
-              SizedBox(
-                height: 55,
-                width: MediaQuery.of(context).size.width,
-                child: ElevatedButton(
+              BrandButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       context.go(context.namedLocation('password',
                           queryParameters: {'email': _emailController.text}));
                     }
                   },
-                  child: const Text('Continue'),
-                ),
-              ),
+                  title: 'Continue'),
               const SizedBox(
                 height: 30,
               ),
@@ -138,16 +126,20 @@ class _EmailState extends State<Email> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     "Don't have an account?",
-                    style: TextStyle(),
+                    style: TextStyle(
+                        fontSize:
+                            Theme.of(context).textTheme.labelLarge?.fontSize),
                   ),
                   TextButton(
                     onPressed: () =>
                         context.go(context.namedLocation('register')),
-                    child: const Text(
+                    child: Text(
                       "Sign Up",
-                      style: TextStyle(),
+                      style: TextStyle(
+                          fontSize:
+                              Theme.of(context).textTheme.labelLarge?.fontSize),
                     ),
                   ),
                 ],
