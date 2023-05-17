@@ -21,7 +21,6 @@ class GroupPasswordDTO {
       'groupName': encryptField(groupName, masterKey),
       'dateCreated': encryptField(dateCreated, masterKey),
       'key': encryptField(key, masterKey),
-      'key2': key,
     };
   }
 }

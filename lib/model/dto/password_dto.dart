@@ -17,7 +17,7 @@ class PasswordDTO {
     return {
       'groupId': groupId2,
       'passwordId': passwordId,
-      'password': encryptField(groupId2, key),
+      'password': encryptField(password, key),
       'userName': encryptField(userName, key),
       'website': encryptField(website, key),
       'dateCreated': encryptField(DateTime.now().toIso8601String(), key),

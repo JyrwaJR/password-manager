@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:password_manager/export.dart';
-import 'package:password_manager/widget/shimmer/brand_title_shimmer.dart';
 
 class ViewGroupPassword extends StatefulWidget {
   final String groupId;
@@ -124,13 +123,8 @@ class OneViewGroupPassword extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: password.length,
               itemBuilder: (BuildContext context, int index) {
-                return InkWell(
-                  onLongPress: () async {
-                    // TODO show delete button
-                  },
-                  child: PasswordCard(
-                    password: password[index],
-                  ),
+                return PasswordCard(
+                  password: password[index],
                 );
               },
             );
@@ -232,106 +226,148 @@ class PasswordCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6.0),
-        child: SizedBox(
-          height: 100,
-          width: double.infinity,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    child: CircleAvatar(
-                      radius: 23,
-                      child: CachedNetworkImage(
-                        imageUrl: "https://api.multiavatar.com/$uid Bond.png",
-                        placeholder: (context, url) => const Center(
-                          child: CircularProgressIndicator(),
+    return InkWell(
+      onTap: () {
+        copyToClipboard(password.password);
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Password copy successful')));
+      },
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+          child: SizedBox(
+            height: 100,
+            width: double.infinity,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 25,
+                      backgroundColor: Theme.of(context).primaryColor,
+                      child: CircleAvatar(
+                        radius: 23,
+                        child: CachedNetworkImage(
+                          imageUrl: "https://api.multiavatar.com/$uid Bond.png",
+                          placeholder: (context, url) => const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) {
+                            if (error is SocketException) {
+                              return const Center(
+                                  child: Icon(Icons.error_outline));
+                            } else if (error is TimeoutException) {
+                              return const Center(
+                                  child: Icon(Icons.error_outline));
+                            } else {
+                              return const Center(
+                                  child: Icon(Icons.error_outline));
+                            }
+                          },
+                          imageBuilder: (context, imageProvider) {
+                            return Image.network(
+                              "https://api.multiavatar.com/${password.passwordId} Bond.png",
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                if (error is SocketException) {
+                                  return const Center(
+                                      child: Icon(Icons.error_outline));
+                                } else if (error is TimeoutException) {
+                                  return const Center(
+                                      child: Icon(Icons.error_outline));
+                                } else {
+                                  return const Center(
+                                      child: Icon(Icons.error_outline));
+                                }
+                              },
+                            );
+                          },
                         ),
-                        fit: BoxFit.cover,
-                        errorWidget: (context, url, error) {
-                          if (error is SocketException) {
-                            return const Center(
-                                child: Icon(Icons.error_outline));
-                          } else if (error is TimeoutException) {
-                            return const Center(
-                                child: Text('Request timed out'));
-                          } else {
-                            return const Center(
-                                child: Text('Failed to load image'));
-                          }
-                        },
-                        imageBuilder: (context, imageProvider) {
-                          return Image.network(
-                            "https://api.multiavatar.com/${password.passwordId} Bond.png",
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              if (error is SocketException) {
-                                return const Center(
-                                    child: Icon(Icons.error_outline));
-                              } else if (error is TimeoutException) {
-                                return const Center(
-                                    child: Text('Request timed out'));
-                              } else {
-                                return const Center(
-                                    child: Text('Failed to load image'));
-                              }
-                            },
-                          );
-                        },
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    width: 15,
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          password.userName,
-                          // AES256Bits.decrypt(password.userName, masterKey),
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 3,
-                        ),
-                        Text(password.website,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Theme.of(context).hintColor,
-                            )),
-                      ],
+                    const SizedBox(
+                      width: 15,
                     ),
-                  ),
-                  IconButton(
-                      onPressed: () {
-                        // copy to clipboard
-                        copyToClipboard(password.password);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Password copy successful')));
-                      },
-                      icon: const Icon(Icons.copy))
-                ],
-              )
-            ],
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            password.userName,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 3,
+                          ),
+                          Text(password.website,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(context).hintColor,
+                              )),
+                        ],
+                      ),
+                    ),
+                    PopupMenuButton(
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          onTap: () {
+                            showCupertinoDialog(
+                              context: context,
+                              builder: (context) => Scaffold(
+                                appBar: AppBar(title: const Text('Back')),
+                                body: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    BrandTitle(
+                                        title: 'Password',
+                                        id: password.passwordId),
+                                    const SizedBox(height: 20),
+                                    BrandPasswordDisplay(
+                                        password: password.userName,
+                                        title: 'Your Username'),
+                                    const SizedBox(height: 20),
+                                    BrandPasswordDisplay(
+                                        password: password.password,
+                                        title: 'Your Password'),
+                                    const SizedBox(height: 20),
+                                    ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Close'))
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text('Password'),
+                        ),
+                        PopupMenuItem(
+                          onTap: () async {
+                            await store.deletePasswordById(
+                                password.passwordId, context);
+                          },
+                          child: const Text('Delete'),
+                        )
+                      ],
+                    )
+                  ],
+                )
+              ],
+            ),
           ),
         ),
       ),

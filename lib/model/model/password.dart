@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:password_manager/AES/256_bits/256_bits_aes.dart';
+
+import 'package:password_manager/constant/export_constant.dart';
 
 class PasswordModel {
   final String groupId;
@@ -18,21 +19,29 @@ class PasswordModel {
     required this.website,
   });
 
-  static String _decryptField(dynamic value, String key) {
-    return value != null ? AES256Bits.decrypt(value, key) : '';
-  }
-
   static List<PasswordModel> groupPasswordDataFromSnapshot(
       QuerySnapshot snapshot, key) {
     return snapshot.docs.map((doc) {
       return PasswordModel(
         groupId: doc['groupId'] ?? '',
         passwordId: doc['passwordId'] ?? '',
-        password: _decryptField(doc['password'], key),
-        userName: _decryptField(doc['userName'], key),
-        website: _decryptField(doc['website'], key),
-        dateCreated: _decryptField(doc['dateCreated'], key),
+        password: decryptField(doc['password'], key),
+        userName: decryptField(doc['userName'], key),
+        website: decryptField(doc['website'], key),
+        dateCreated: decryptField(doc['dateCreated'], key),
       );
     }).toList();
+  }
+
+  static PasswordModel passwordDataFromSnapshotById(
+      DocumentSnapshot snapshot, String masterKey) {
+    return PasswordModel(
+      groupId: snapshot['groupId'],
+      passwordId: snapshot['passwordId'],
+      password: decryptField(snapshot['password'], masterKey),
+      userName: decryptField(snapshot['userName'], masterKey),
+      website: decryptField(snapshot['website'], masterKey),
+      dateCreated: decryptField(snapshot['dateCreated'], masterKey),
+    );
   }
 }

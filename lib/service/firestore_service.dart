@@ -271,9 +271,27 @@ class FirestoreService {
         .snapshots()
         .map(UserModel.userDataFromSnapshot)
         .handleError((e) {
-      print(e);
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
+    });
+  }
+
+// Get stream of password with password id
+  Stream<PasswordModel> getPasswordById(
+      String id, String uid, groupId, BuildContext context) {
+    return _PasswordsCollection.doc(id).snapshots().asyncMap((snapshot) async {
+      final groupKey = await getGroupKey(groupId, uid, context);
+      if (groupKey != null) {
+        return PasswordModel.passwordDataFromSnapshotById(snapshot, groupKey);
+      } else {
+        return const PasswordModel(
+            groupId: '',
+            passwordId: '',
+            password: '',
+            dateCreated: '',
+            userName: '',
+            website: '');
+      }
     });
   }
 
@@ -353,6 +371,21 @@ class FirestoreService {
   }
 
   // ! Delete
+  Future<void> deletePasswordById(
+      String passwordId, BuildContext context) async {
+    try {
+      return await _PasswordsCollection.doc(passwordId).delete().then((value) =>
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Password deleted'))));
+    } on FirebaseException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
   // ! Delete password with group ID
   Future<void> deleteGroupPassword(String groupId, BuildContext context) async {
     try {

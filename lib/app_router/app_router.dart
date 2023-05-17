@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
-
 class AppRouter {
   final auth = FirebaseAuth.instance;
 
@@ -73,13 +72,7 @@ class AppRouter {
                 builder: (context, state) => ViewGroupPassword(
                     groupId: state.queryParameters['groupId']!),
                 routes: [
-                  GoRoute(
-                    path: 'add-credential',
-                    name: 'add credential',
-                    builder: (context, state) => AddCredential(
-                      groupId: state.queryParameters['groupId']!,
-                    ),
-                  ),
+// TODO Add password
                 ],
               ),
             ],
@@ -124,11 +117,6 @@ class AppRouter {
             ],
           ),
         ],
-      ),
-      GoRoute(
-        path: '/local-auth',
-        name: 'local auth',
-        builder: (context, state) => const ViewPassword(),
       ),
       GoRoute(
         path: '/un-support',

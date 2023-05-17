@@ -62,16 +62,18 @@ class _SavePasswordState extends State<SavePassword> {
             )
             .then((value) => Navigator.pop(context));
       } else {
-        await store.addPassword(
-            PasswordDTO(
-              passwordId: passwordId,
-              password: widget.generatedPassword,
-              userName: userName!,
-              website: website!,
-            ),
-            _selectedGroupId!,
-            uid,
-            context);
+        await store
+            .addPassword(
+                PasswordDTO(
+                  passwordId: passwordId,
+                  password: widget.generatedPassword,
+                  userName: userName!,
+                  website: website!,
+                ),
+                _selectedGroupId!,
+                uid,
+                context)
+            .then((value) => Navigator.pop(context));
 
         setState(() {
           isLoading = false;

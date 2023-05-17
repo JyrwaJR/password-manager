@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:password_manager/export.dart';
 
 class BrandPasswordDisplay extends StatelessWidget {
-  const BrandPasswordDisplay({super.key, required this.password});
+  const BrandPasswordDisplay({
+    super.key,
+    required this.password,
+    this.title,
+  });
   final String password;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +31,7 @@ class BrandPasswordDisplay extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'GENERATED PASSWORD',
+                title ?? 'GENERATED PASSWORD',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
