@@ -17,7 +17,7 @@ class _GroupPasswordsState extends State<GroupPasswords> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder(
+      body: StreamBuilder<List<GroupPassword>>(
         stream: store.getGroupPassword(uid!, context),
         initialData: const [],
         builder: (BuildContext context, AsyncSnapshot snapshot) {
