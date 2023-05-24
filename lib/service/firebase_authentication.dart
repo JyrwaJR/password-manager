@@ -72,7 +72,8 @@ class FirebaseAuthService {
     try {
       final store = FirestoreService();
       await store
-          .deleteGroupPassword(groupId, context)
+          .deleteGroupPassword(groupId, true, context)
+          .then((value) => store.deleteGroupPassword(groupId, false, context))
           .then((value) => auth.currentUser?.delete());
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context)

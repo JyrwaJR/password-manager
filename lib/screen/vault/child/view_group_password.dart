@@ -20,6 +20,21 @@ class ViewGroupPassword extends StatefulWidget {
 final store = FirestoreService();
 final auth = FirebaseAuth.instance;
 
+void onSelectActionButton(
+    String value, String groupId, BuildContext context) async {
+  if (value == '0') {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) =>
+          RenameGroupBottomSheet(groupId: groupId, isPasswordGroup: true),
+    );
+  } else if (value == '1') {
+    return;
+  } else if (value == '2') {
+    await deleteGroupWithGroupIdAlertBox(context, true, groupId);
+  }
+}
+
 class _ViewGroupPasswordState extends State<ViewGroupPassword> {
   final uid = auth.currentUser?.uid;
   @override
@@ -29,11 +44,15 @@ class _ViewGroupPasswordState extends State<ViewGroupPassword> {
         title: const Text('Back'),
         automaticallyImplyLeading: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () async {
-              await store.deleteGroupPassword(widget.groupId, context);
+          PopupMenuButton(
+            onSelected: (value) {
+              onSelectActionButton(value, widget.groupId, context);
             },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: '0', child: Text('Rename')),
+              const PopupMenuItem(value: '1', child: Text('Get Key')),
+              const PopupMenuItem(value: '2', child: Text('Delete')),
+            ],
           )
         ],
       ),
@@ -76,24 +95,25 @@ class TitleViewGroupPassword extends StatelessWidget {
     final store = FirestoreService();
     final uid = FirebaseAuth.instance.currentUser?.uid;
     return StreamBuilder<GroupPassword>(
-        stream: store.getGroupPasswordWithGroupId(groupId, uid!, context),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const BrandTitleShimmer();
-          } else if (snapshot.connectionState == ConnectionState.active) {
-            if (snapshot.hasData) {
-              final data = snapshot.data;
-              return BrandTitle(
-                title: capitalizeFirstLetter(data?.groupName ?? ''),
-                id: groupId,
-              );
-            } else {
-              return const BrandTitleShimmer();
-            }
+      stream: store.getGroupPasswordWithGroupId(groupId, uid!, context),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const BrandTitleShimmer();
+        } else if (snapshot.connectionState == ConnectionState.active) {
+          if (snapshot.hasData) {
+            final data = snapshot.data;
+            return BrandTitle(
+              title: capitalizeFirstLetter(data?.groupName ?? ''),
+              id: groupId,
+            );
           } else {
             return const BrandTitleShimmer();
           }
-        });
+        } else {
+          return const BrandTitleShimmer();
+        }
+      },
+    );
   }
 }
 
@@ -116,18 +136,29 @@ class OneViewGroupPassword extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const OneViewGroupPasswordShimmer();
         } else if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
+          if (snapshot.hasData || snapshot.data!.isNotEmpty) {
             final password = snapshot.data;
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: password.length,
-              itemBuilder: (BuildContext context, int index) {
-                return PasswordCard(
-                  password: password[index],
-                );
-              },
-            );
+            return password.length > 0
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: password.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return PasswordCard(
+                        password: password[index],
+                      );
+                    },
+                  )
+                : Center(
+                    child: Text(
+                      'This group has no password',
+                      style: TextStyle(
+                        fontSize:
+                            Theme.of(context).textTheme.headlineSmall?.fontSize,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  );
           } else {
             return const OneViewGroupPasswordShimmer();
           }
@@ -252,43 +283,7 @@ class PasswordCard extends StatelessWidget {
                       backgroundColor: Theme.of(context).primaryColor,
                       child: CircleAvatar(
                         radius: 23,
-                        child: CachedNetworkImage(
-                          imageUrl: "https://api.multiavatar.com/$uid Bond.png",
-                          placeholder: (context, url) => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, error) {
-                            if (error is SocketException) {
-                              return const Center(
-                                  child: Icon(Icons.error_outline));
-                            } else if (error is TimeoutException) {
-                              return const Center(
-                                  child: Icon(Icons.error_outline));
-                            } else {
-                              return const Center(
-                                  child: Icon(Icons.error_outline));
-                            }
-                          },
-                          imageBuilder: (context, imageProvider) {
-                            return Image.network(
-                              "https://api.multiavatar.com/${password.passwordId} Bond.png",
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                if (error is SocketException) {
-                                  return const Center(
-                                      child: Icon(Icons.error_outline));
-                                } else if (error is TimeoutException) {
-                                  return const Center(
-                                      child: Icon(Icons.error_outline));
-                                } else {
-                                  return const Center(
-                                      child: Icon(Icons.error_outline));
-                                }
-                              },
-                            );
-                          },
-                        ),
+                        child: BrandCachedImages(uid: uid, password: password),
                       ),
                     ),
                     const SizedBox(
@@ -371,6 +366,52 @@ class PasswordCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class BrandCachedImages extends StatelessWidget {
+  const BrandCachedImages({
+    super.key,
+    required this.uid,
+    required this.password,
+  });
+
+  final String uid;
+  final PasswordModel password;
+
+  @override
+  Widget build(BuildContext context) {
+    return CachedNetworkImage(
+      imageUrl: "https://api.multiavatar.com/$uid Bond.png",
+      placeholder: (context, url) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+      fit: BoxFit.cover,
+      errorWidget: (context, url, error) {
+        if (error is SocketException) {
+          return const Center(child: Icon(Icons.error_outline));
+        } else if (error is TimeoutException) {
+          return const Center(child: Icon(Icons.error_outline));
+        } else {
+          return const Center(child: Icon(Icons.error_outline));
+        }
+      },
+      imageBuilder: (context, imageProvider) {
+        return Image.network(
+          "https://api.multiavatar.com/${password.passwordId} Bond.png",
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            if (error is SocketException) {
+              return const Center(child: Icon(Icons.error_outline));
+            } else if (error is TimeoutException) {
+              return const Center(child: Icon(Icons.error_outline));
+            } else {
+              return const Center(child: Icon(Icons.error_outline));
+            }
+          },
+        );
+      },
     );
   }
 }

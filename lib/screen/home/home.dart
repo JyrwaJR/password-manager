@@ -34,7 +34,7 @@ class _HomeState extends State<Home> {
     });
   }
 
-  //! call back function to update include sumbols
+  //! call back function to update include symbols
   void _handleIncludeNumberChanged(bool value) {
     setState(() {
       _includeNumber = value;
@@ -109,7 +109,7 @@ class _HomeState extends State<Home> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              BrandTitle(title: 'Generate Passwords', id: uid!),
+              BrandTitle(title: 'Generate Passwords', id: uid ?? ''),
               const SizedBox(height: 15),
               BrandPasswordDisplay(password: generatedPassword),
               const SizedBox(height: 10),

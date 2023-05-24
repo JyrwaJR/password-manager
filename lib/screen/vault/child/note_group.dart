@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
 
 class NoteGroup extends StatefulWidget {
@@ -62,8 +63,10 @@ class _NoteGroupState extends State<NoteGroup> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO
+        onPressed: () async {
+          // TODO Create new group
+          final store = FirestoreService();
+          await store.createGroupForNote('Here', uid, context);
         },
         child: const Icon(Icons.add),
       ),
@@ -86,12 +89,14 @@ class NotesGroupCard extends StatelessWidget {
       itemCount: model.length,
       itemBuilder: (BuildContext context, int index) {
         return InkWell(
-            onTap: () async {
-              // TODO
-            },
-            child: NotesCard(
-              groupPassword: model[index],
-            ));
+          onTap: () async {
+            context.go(context.namedLocation('view notes',
+                queryParameters: {'groupId': model[index].groupId}));
+          },
+          child: TwoNotesCard(
+            groupPassword: model[index],
+          ),
+        );
       },
       separatorBuilder: (context, index) {
         return const SizedBox(height: 10);
@@ -100,8 +105,8 @@ class NotesGroupCard extends StatelessWidget {
   }
 }
 
-class NotesCard extends StatelessWidget {
-  const NotesCard({
+class TwoNotesCard extends StatelessWidget {
+  const TwoNotesCard({
     super.key,
     required this.groupPassword,
   });

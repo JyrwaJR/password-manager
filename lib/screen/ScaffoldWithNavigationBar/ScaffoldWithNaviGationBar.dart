@@ -5,9 +5,7 @@ import 'package:password_manager/export.dart';
 class ScaffoldWithBottomNavigationBar extends StatefulWidget {
   final Widget child;
 
-  const ScaffoldWithBottomNavigationBar({
-    required this.child,
-  });
+  const ScaffoldWithBottomNavigationBar({required this.child, super.key});
 
   @override
   State<ScaffoldWithBottomNavigationBar> createState() =>

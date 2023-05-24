@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
+
 class AppRouter {
   final auth = FirebaseAuth.instance;
-
   late final GoRouter appRouter = GoRouter(
     debugLogDiagnostics: true,
     initialLocation: '/',
@@ -14,7 +14,6 @@ class AppRouter {
       if (unSupportScreen) {
         return '/un-support';
       }
-
       return null;
     },
     routes: [
@@ -62,8 +61,8 @@ class AppRouter {
             ],
           ),
           GoRoute(
-            path: '/volt',
-            name: 'volt',
+            path: '/vault',
+            name: 'vault',
             builder: (context, state) => const Vault(),
             routes: [
               GoRoute(
@@ -71,8 +70,17 @@ class AppRouter {
                 name: 'view group password',
                 builder: (context, state) => ViewGroupPassword(
                     groupId: state.queryParameters['groupId']!),
-                routes: [
-// TODO Add password
+                routes: const [
+                  // TODO Add password
+                ],
+              ),
+              GoRoute(
+                path: 'view-notes',
+                name: 'view notes',
+                builder: (context, state) =>
+                    ViewNotes(groupId: state.queryParameters['groupId']!),
+                routes: const [
+// TODO Add notes
                 ],
               ),
             ],
