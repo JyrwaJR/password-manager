@@ -67,8 +67,8 @@ class _SavePasswordState extends State<SavePassword> {
                 PasswordDTO(
                   passwordId: passwordId,
                   password: widget.generatedPassword,
-                  userName: userName!,
-                  website: website!,
+                  userName: userName ?? '',
+                  website: website ?? '',
                 ),
                 _selectedGroupId!,
                 uid,
@@ -162,43 +162,39 @@ class _SavePasswordState extends State<SavePassword> {
                                   },
                                   decoration: const InputDecoration(
                                       label: Text('Group name'),
-                                      hintText: 'Enter a group name')),
-                            )
+                                      hintText: 'Enter a group name')))
                           : ThreeSavePassword(
-                              uid: uid,
-                              onChanged: onGroupSelected,
-                            ),
+                              uid: uid, onChanged: onGroupSelected),
                       const SizedBox(height: 20),
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: TextFormField(
-                            onChanged: (value) {
-                              setState(() {
+                              onChanged: (value) {
+                                setState(() {
+                                  userName = value;
+                                });
+                              },
+                              maxLength: 50,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a username';
+                                }
+                                if (value.length < 3) {
+                                  return 'Name must b more in length';
+                                }
+                                if (value.contains(' ')) {
+                                  return 'Please enter a valid name';
+                                }
+                                return null;
+                              },
+                              onSaved: (value) {
                                 userName = value;
-                              });
-                            },
-                            maxLength: 50,
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a username';
-                              }
-                              if (value.length < 3) {
-                                return 'Name must b more in length';
-                              }
-                              if (value.contains(' ')) {
-                                return 'Please enter a valid name';
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              userName = value;
-                            },
-                            decoration: const InputDecoration(
-                              labelText: 'User-name',
-                              hintText: 'enter your account username',
-                            ),
-                          )),
+                              },
+                              decoration: const InputDecoration(
+                                  labelText: 'User-name',
+                                  hintText:
+                                      'Please enter your account username'))),
                       const SizedBox(height: 20),
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -227,7 +223,7 @@ class _SavePasswordState extends State<SavePassword> {
                             },
                             decoration: const InputDecoration(
                               labelText: 'Website link',
-                              hintText: 'Enter your website link',
+                              hintText: 'Please enter the website link',
                             ),
                           )),
                       const SizedBox(height: 20),

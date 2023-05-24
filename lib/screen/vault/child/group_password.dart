@@ -94,10 +94,12 @@ class TwoGroupPassword extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         return InkWell(
           onTap: () async {
-            context.goNamed('view group password',
-                queryParameters: <String, String>{
-                  'groupId': model[index].groupId,
-                });
+            context.goNamed(
+              'view group password',
+              queryParameters: <String, String>{
+                'groupId': model[index].groupId,
+              },
+            );
           },
           child: PasswordGroupCard(
             groupPassword: model[index],

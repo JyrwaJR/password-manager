@@ -19,6 +19,7 @@ export 'vault/child/view_group_password.dart';
 export 'vault/child/add_credential.dart';
 export 'vault/child/group_password.dart';
 export 'vault/child/note_group.dart';
+export 'vault/child/view_note.dart';
 export 'vault/pin/pin_password.dart';
 // ! volt end
 

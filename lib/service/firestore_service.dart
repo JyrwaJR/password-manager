@@ -1,10 +1,14 @@
 // ignore_for_file: file_names
 
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
 import 'package:password_manager/model/dto/notes_group_dto.dart';
+import 'package:password_manager/model/dto/notes_model_dto.dart';
+import 'package:password_manager/model/model/notes_model.dart';
 import 'package:password_manager/model/model/notes_group.dart';
 import 'package:uuid/uuid.dart';
 
@@ -275,6 +279,38 @@ class FirestoreService {
     }
   }
 
+  Future<void> addNotes(
+    NotesModelDTO noteDTO,
+    String groupId,
+    String uid,
+    BuildContext context,
+  ) async {
+    try {
+      final key = await getNotesGroupKey(groupId, uid, context);
+      debugPrint(groupId);
+      debugPrint(key);
+      if (key != null) {
+        await _NotesCollection.doc(noteDTO.notesId)
+            .set(
+              noteDTO.toMap(key, groupId),
+            )
+            .then((value) => context.goNamed('view notes',
+                queryParameters: <String, String>{'groupId': groupId}))
+            .then((value) => ScaffoldMessenger.of(context)
+                .showSnackBar(const SnackBar(content: Text('Note added'))));
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Please try again')));
+      }
+    } on FirebaseException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
 // ! Read
   Future<String?> getGroupKey(
       String groupId, String uid, BuildContext context) async {
@@ -286,6 +322,33 @@ class FirestoreService {
         if (groupData.data()?['key'] != null) {
           final encryptedKey = groupData.data()?['key'];
           final groupKey = AES256Bits.decrypt(encryptedKey, masterKey);
+          return groupKey;
+        } else {
+          return null;
+        }
+      }
+      return null;
+    } on FirebaseException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      return null;
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+      return null;
+    }
+  }
+
+  Future<String?> getNotesGroupKey(
+      String groupId, String uid, BuildContext context) async {
+    try {
+      final masterKey = await getMasterKey(uid, groupId, context);
+      if (masterKey != null) {
+        final groupData =
+            await firestore.collection('Notes Group').doc(groupId).get();
+        if (groupData.data()?['key'] != null) {
+          final encryptedKey = groupData.data()?['key'];
+          final groupKey = decryptField(encryptedKey, masterKey);
           return groupKey;
         } else {
           return null;
@@ -453,6 +516,21 @@ class FirestoreService {
     );
   }
 
+  Stream<NotesGroup> getNotesGroupByGroupId(
+      String groupId, String uid, BuildContext context) {
+    return _NotesGroupCollection.doc(groupId)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final masterKey = await getMasterKey(uid, groupId, context);
+
+      return NotesGroup.noteGroupDataFromSnapshotByGroupId(
+          snapshot, masterKey ?? '');
+    }).handleError(
+      (e) => ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString()))),
+    );
+  }
+
   Stream<List<PasswordModel>> viewGroupPasswordWithKey(
       String groupId, String uid, BuildContext context) {
     return _PasswordsCollection.where('groupId', isEqualTo: groupId)
@@ -470,20 +548,49 @@ class FirestoreService {
         .cast<List<PasswordModel>>();
   }
 
+  Stream<List<NotesModel>> viewNotesGroupWithKey(
+    String groupId,
+    String uid,
+    BuildContext context,
+  ) {
+    return _NotesCollection.where('groupId', isEqualTo: groupId)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          final groupKey = await getNotesGroupKey(groupId, uid, context);
+          if (groupKey == null) {
+            return [];
+          }
+          return NotesModel.listOfNotesDataFromSnapshot(snapshot, groupKey);
+        })
+        .handleError((e) => ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString()))))
+        .cast<List<NotesModel>>();
+  }
+
   // ! Update
   // ! Update Group Name
-  Future<void> updateGroupName(
-      String groupId, String groupName, BuildContext context) async {
-    try {
-      return await _GroupPasswordsCollection.doc(groupId).update({
-        'groupName': groupName,
-      });
-    } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+  Future<void> updateGroupName(String groupId, String uid, String groupName,
+      bool isPasswordGroup, BuildContext context) async {
+    if (uid.isNotEmpty) {
+      try {
+        final masterKey = await getMasterKey(uid, groupId, context);
+        final encryptedGroupName = encryptField(groupName, masterKey!);
+        if (isPasswordGroup) {
+          return await _GroupPasswordsCollection.doc(groupId).update({
+            'groupName': encryptedGroupName,
+          });
+        } else {
+          return await _NotesGroupCollection.doc(groupId).update({
+            'groupName': encryptedGroupName,
+          });
+        }
+      } on FirebaseException catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
     }
   }
 
@@ -504,27 +611,46 @@ class FirestoreService {
   }
 
   // ! Delete password with group ID
-  Future<void> deleteGroupPassword(String groupId, BuildContext context) async {
+  Future<void> deleteGroupPassword(
+      String groupId, bool isPasswordGroup, BuildContext context) async {
     try {
-      return await _PasswordsCollection.where('groupId', isEqualTo: groupId)
-          .get()
-          .then((snapshot) {
-            for (var doc in snapshot.docs) {
-              doc.reference.delete();
-            }
-            // then delete group password
-          })
-          .then((value) =>
-              _MasterKeysCollection.where('groupId', isEqualTo: groupId)
-                  .get()
-                  .then((snapshot) {
-                for (var doc in snapshot.docs) {
-                  doc.reference.delete();
-                }
-              }))
-          .then((value) => _GroupPasswordsCollection.doc(groupId)
-              .delete()
-              .then((value) => Navigator.pop(context)));
+      if (isPasswordGroup) {
+        return await _PasswordsCollection.where('groupId', isEqualTo: groupId)
+            .get()
+            .then((snapshot) {
+              for (var doc in snapshot.docs) {
+                doc.reference.delete();
+              }
+              // then delete group password
+            })
+            .then((value) =>
+                _MasterKeysCollection.where('groupId', isEqualTo: groupId)
+                    .get()
+                    .then((snapshot) {
+                  for (var doc in snapshot.docs) {
+                    doc.reference.delete();
+                  }
+                }))
+            .then((value) => _GroupPasswordsCollection.doc(groupId).delete());
+      } else {
+        return await _NotesCollection.where('groupId', isEqualTo: groupId)
+            .get()
+            .then((snapshot) {
+              for (var doc in snapshot.docs) {
+                doc.reference.delete();
+              }
+              // then delete group password
+            })
+            .then((value) =>
+                _MasterKeysCollection.where('groupId', isEqualTo: groupId)
+                    .get()
+                    .then((snapshot) {
+                  for (var doc in snapshot.docs) {
+                    doc.reference.delete();
+                  }
+                }))
+            .then((value) => _NotesGroupCollection.doc(groupId).delete());
+      }
     } on FirebaseException catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.message.toString())));
