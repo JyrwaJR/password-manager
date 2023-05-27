@@ -7,6 +7,7 @@ class NotesModel {
   final String notes;
   final String dateCreated;
   final String notesName;
+  final String title;
 
   NotesModel({
     required this.groupId,
@@ -14,6 +15,7 @@ class NotesModel {
     required this.notes,
     required this.dateCreated,
     required this.notesName,
+    required this.title,
   });
   static List<NotesModel> listOfNotesDataFromSnapshot(
       QuerySnapshot snapshot, key) {
@@ -22,6 +24,7 @@ class NotesModel {
         groupId: doc['groupId'] ?? '',
         notesId: doc['notesId'] ?? '',
         notes: decryptField(doc['notes'], key),
+        title: decryptField(doc['title'], key),
         notesName: decryptField(doc['notesName'], key),
         dateCreated: decryptField(doc['dateCreated'], key),
       );
@@ -35,6 +38,7 @@ class NotesModel {
       notesId: doc['passwordId'] ?? '',
       notes: decryptField(doc['password'], masterKey),
       notesName: decryptField(doc['userName'], masterKey),
+      title: decryptField(doc['title'], masterKey),
       dateCreated: decryptField(doc['dateCreated'], masterKey),
     );
   }

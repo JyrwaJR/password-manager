@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:password_manager/constant/regex.dart';
 import 'package:password_manager/export.dart';
 
 class Email extends StatefulWidget {

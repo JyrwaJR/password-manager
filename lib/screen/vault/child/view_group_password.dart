@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:password_manager/export.dart';
+import 'package:password_manager/widget/view_password_bottom_sheet.dart';
 
 class ViewGroupPassword extends StatefulWidget {
   final String groupId;
@@ -29,7 +29,10 @@ void onSelectActionButton(
           RenameGroupBottomSheet(groupId: groupId, isPasswordGroup: true),
     );
   } else if (value == '1') {
-    return;
+    showDialog(
+      context: context,
+      builder: (context) => const GetApiKeyNotYetImplemented(),
+    );
   } else if (value == '2') {
     await deleteGroupWithGroupIdAlertBox(context, true, groupId);
   }
@@ -68,9 +71,11 @@ class _ViewGroupPasswordState extends State<ViewGroupPassword> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showCupertinoDialog(
+          showModalBottomSheet(
             context: context,
-            useRootNavigator: false,
+            useSafeArea: true,
+            showDragHandle: true,
+            isScrollControlled: true,
             builder: (context) => AddCredential(groupId: widget.groupId),
           );
         },
@@ -318,35 +323,7 @@ class PasswordCard extends StatelessWidget {
                       itemBuilder: (context) => [
                         PopupMenuItem(
                           onTap: () {
-                            showCupertinoDialog(
-                              context: context,
-                              builder: (context) => Scaffold(
-                                appBar: AppBar(title: const Text('Back')),
-                                body: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    BrandTitle(
-                                        title: 'Password',
-                                        id: password.passwordId),
-                                    const SizedBox(height: 20),
-                                    BrandPasswordDisplay(
-                                        password: password.userName,
-                                        title: 'Your Username'),
-                                    const SizedBox(height: 20),
-                                    BrandPasswordDisplay(
-                                        password: password.password,
-                                        title: 'Your Password'),
-                                    const SizedBox(height: 20),
-                                    ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text('Close'))
-                                  ],
-                                ),
-                              ),
-                            );
+                            viewPasswordBottomSheet(context, password);
                           },
                           child: const Text('Password'),
                         ),

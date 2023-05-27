@@ -84,6 +84,10 @@ class MyApp extends StatelessWidget {
           ),
           useMaterial3: true,
           colorScheme: darkColorScheme,
+          floatingActionButtonTheme: FloatingActionButtonThemeData(
+            foregroundColor: darkColorScheme.primary,
+            backgroundColor: darkColorScheme.primary,
+          ),
           inputDecorationTheme: InputDecorationTheme(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),

@@ -267,7 +267,7 @@ class OneProfile extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            user.userName,
+            capitalizeFirstLetter(user.userName),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -312,7 +312,8 @@ class ProfileShimmer extends StatelessWidget {
                 CircleAvatar(
                   radius: 85,
                   backgroundColor: Theme.of(context).highlightColor,
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
+                    backgroundColor: Theme.of(context).highlightColor,
                     radius: 80,
                   ),
                 ),
@@ -337,19 +338,23 @@ class ProfileShimmer extends StatelessWidget {
             const SizedBox(
               height: 20,
             ),
-            ListView.builder(
+            ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               shrinkWrap: true,
               itemCount: 8,
               physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (BuildContext context, int index) {
-                return Card(
-                  color: Theme.of(context).highlightColor.withOpacity(1),
-                  child: const SizedBox(
-                    height: 70,
+                return Container(
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).highlightColor,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 );
               },
+              separatorBuilder: (context, index) => const SizedBox(
+                height: 10,
+              ),
             ),
           ],
         ),

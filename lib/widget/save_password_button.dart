@@ -19,11 +19,13 @@ class SavePasswordButton extends StatelessWidget {
             child: IconButton(
                 onPressed: onPressed,
                 icon: Column(children: [
-                  Icon(Icons.cloud_upload_outlined,
-                      color: Theme.of(context).primaryColor),
+                  Icon(
+                    Icons.cloud_upload_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   Text(title,
                       style: TextStyle(
-                          color: Theme.of(context).primaryColor,
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize:
                               Theme.of(context).textTheme.labelLarge?.fontSize,
                           fontWeight: FontWeight.bold)),

@@ -1,9 +1,4 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:password_manager/constant/export_constant.dart';
 import 'package:password_manager/export.dart';
 
 class PasswordGroupCard extends StatelessWidget {
@@ -12,9 +7,28 @@ class PasswordGroupCard extends StatelessWidget {
     required this.groupPassword,
   });
   final GroupPassword groupPassword;
+
   @override
   Widget build(BuildContext context) {
     String groupId = groupPassword.groupId;
+    void onSelectActionButton(
+        String value, String groupId, BuildContext context) async {
+      if (value == '0') {
+        showModalBottomSheet(
+          context: context,
+          builder: (context) =>
+              RenameGroupBottomSheet(groupId: groupId, isPasswordGroup: true),
+        );
+      } else if (value == '1') {
+        showDialog(
+          context: context,
+          builder: (context) => const GetApiKeyNotYetImplemented(),
+        );
+      } else if (value == '2') {
+        await deleteGroupWithGroupIdAlertBox(context, true, groupId);
+      }
+    }
+
     return Card(
       color: Theme.of(context).secondaryHeaderColor,
       child: Container(
@@ -29,51 +43,7 @@ class PasswordGroupCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    child: CircleAvatar(
-                      radius: 23,
-                      child: CachedNetworkImage(
-                        imageUrl:
-                            "https://api.multiavatar.com/$groupId Bond.png",
-                        placeholder: (context, url) => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                        fit: BoxFit.cover,
-                        errorWidget: (context, url, error) {
-                          if (error is SocketException) {
-                            return const Center(
-                                child: Icon(Icons.error_outline));
-                          } else if (error is TimeoutException) {
-                            return const Center(
-                                child: Text('Request timed out'));
-                          } else {
-                            return const Center(
-                                child: Text('Failed to load image'));
-                          }
-                        },
-                        imageBuilder: (context, imageProvider) {
-                          return Image.network(
-                            "https://api.multiavatar.com/$groupId Bond.png",
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              if (error is SocketException) {
-                                return const Center(
-                                    child: Icon(Icons.error_outline));
-                              } else if (error is TimeoutException) {
-                                return const Center(
-                                    child: Icon(Icons.error_outline));
-                              } else {
-                                return const Center(
-                                    child: Icon(Icons.error_outline));
-                              }
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
+                  BrandCircularAvatar(id: groupId, radius: 23),
                   const SizedBox(
                     width: 10,
                   ),
@@ -86,10 +56,15 @@ class PasswordGroupCard extends StatelessWidget {
                   ),
                 ],
               ),
-              IconButton(
-                icon: const Icon(Icons.more_vert),
-                onPressed: () {},
-                color: Theme.of(context).primaryColor,
+              PopupMenuButton(
+                onSelected: (value) {
+                  onSelectActionButton(value, groupPassword.groupId, context);
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: '0', child: Text('Rename')),
+                  const PopupMenuItem(value: '1', child: Text('Get Key')),
+                  const PopupMenuItem(value: '2', child: Text('Delete')),
+                ],
               )
             ],
           ),

@@ -32,8 +32,8 @@ class _BrandTextWithSwitchState extends State<BrandTextWithSwitch> {
                 ),
               ),
               Switch(
-                inactiveThumbColor: Theme.of(context).primaryColor,
-                inactiveTrackColor: Theme.of(context).scaffoldBackgroundColor,
+                inactiveThumbColor: Theme.of(context).colorScheme.primary,
+                inactiveTrackColor: Theme.of(context).colorScheme.onSecondary,
                 value: includeSymbol,
                 onChanged: (value) {
                   setState(() {

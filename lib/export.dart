@@ -7,3 +7,4 @@ export './constant/export_constant.dart';
 export './widget/export_widget.dart';
 export './AES/aes_export.dart';
 export 'validiator/email_validiator.dart';
+export './cache_manager/export_cache_manager.dart';

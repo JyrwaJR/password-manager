@@ -29,3 +29,29 @@ Future<void> deleteGroupWithGroupIdAlertBox(
     ),
   );
 }
+
+Future<void> deleteNotesByIdAlertBox(BuildContext context, String noteId) {
+  final store = FirestoreService();
+  return showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Oop!'),
+      content: Text(
+          'Note: By deleting this group will make an un-recover of this note with this Note-ID: $noteId . \n\n Are you sure you want to delete.'),
+      actions: [
+        TextButton(
+          onPressed: () async {
+            await store
+                .deleteNotesById(noteId, context)
+                .then((value) => Navigator.pop(context));
+          },
+          child: const Text('Yes'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('No'),
+        )
+      ],
+    ),
+  );
+}

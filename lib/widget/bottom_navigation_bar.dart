@@ -16,6 +16,10 @@ class CustomBottomNavigationBar extends StatefulWidget {
 
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   late int selectedIndex = 0;
+  bool isDarkTheme(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.brightness == Brightness.dark;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,34 +45,32 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
         }
       }
     });
-    return Card(
-      color: Theme.of(context).secondaryHeaderColor,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
-        child: GNav(
-          tabBackgroundColor: Theme.of(context).canvasColor,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          duration: const Duration(milliseconds: 300),
-          activeColor: Theme.of(context).primaryColor,
-          color: Theme.of(context).primaryColorDark,
-          tabs: const [
-            GButton(
-              icon: Icons.equalizer_outlined,
-              text: 'Tool',
-            ),
-            GButton(
-              icon: Icons.shield_outlined,
-              text: 'Password',
-            ),
-            GButton(
-              icon: Icons.person_2_outlined,
-              text: 'Profile',
-            ),
-          ],
-          selectedIndex: selectedIndex,
-          onTabChange: _onItemTapped,
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
+      child: GNav(
+        haptic: true,
+        tabBackgroundColor: Theme.of(context).colorScheme.primary,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        duration: const Duration(milliseconds: 300),
+        activeColor: Theme.of(context).colorScheme.onPrimary,
+        gap: 10,
+        tabs: const [
+          GButton(
+            icon: Icons.equalizer_outlined,
+            text: 'Home',
+          ),
+          GButton(
+            icon: Icons.shield_outlined,
+            text: 'Password',
+          ),
+          GButton(
+            icon: Icons.person_2_outlined,
+            text: 'Profile',
+          ),
+        ],
+        selectedIndex: selectedIndex,
+        onTabChange: _onItemTapped,
       ),
     );
   }

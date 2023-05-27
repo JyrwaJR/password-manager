@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:password_manager/constant/export_constant.dart';
 
 class PasswordModel {

@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:password_manager/export.dart';
 
 class RenameGroupBottomSheet extends StatefulWidget {
-  const RenameGroupBottomSheet(
-      {super.key, required this.groupId, required this.isPasswordGroup});
+  const RenameGroupBottomSheet({
+    super.key,
+    required this.groupId,
+    required this.isPasswordGroup,
+  });
   final bool isPasswordGroup;
   final String groupId;
 
@@ -25,20 +28,29 @@ class _RenameGroupBottomSheetState extends State<RenameGroupBottomSheet> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            InkWell(
-              onTap: () => Navigator.pop(context),
-              child: Center(
-                child: Container(
-                  height: 8,
-                  width: 60,
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).dividerColor.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(12)),
-                ),
+            const DashButtonForBottomSheet(),
+            BrandTitle(title: 'Rename', id: widget.groupId),
+            const SizedBox(height: 20),
+            Text(
+              'New name! Good choice',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize:
+                    Theme.of(context).primaryTextTheme.headlineSmall?.fontSize,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            BrandTitle(title: 'Rename', id: widget.groupId),
             const SizedBox(height: 10),
+            Text(
+              'a good name is a good way to remember your group',
+              overflow: TextOverflow.ellipsis,
+              maxLines: 3,
+              style: TextStyle(
+                  fontSize:
+                      Theme.of(context).primaryTextTheme.bodyLarge?.fontSize,
+                  color: Theme.of(context).hintColor),
+            ),
+            const SizedBox(height: 20),
             TextFormField(
                 validator: (value) {
                   if (value!.isEmpty) {
@@ -64,16 +76,19 @@ class _RenameGroupBottomSheetState extends State<RenameGroupBottomSheet> {
                 onChanged: (value) {
                   setState(() {
                     isNewGroupName = value;
-                    print(isNewGroupName);
                   });
                 },
+                keyboardType: TextInputType.name,
+                maxLength: 20,
                 decoration: const InputDecoration(
                   labelText: 'Group Name',
-                  hintText: 'Enter group name',
+                  hintText: 'example: social media',
+                  helperText: 'please enter a name for your group',
                 )),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             BrandButton(
                 onPressed: () async {
+                  FocusScope.of(context).unfocus();
                   if (_formKey.currentState!.validate()) {
                     if (isNewGroupName != null) {
                       await store

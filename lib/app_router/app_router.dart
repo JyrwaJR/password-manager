@@ -70,18 +70,12 @@ class AppRouter {
                 name: 'view group password',
                 builder: (context, state) => ViewGroupPassword(
                     groupId: state.queryParameters['groupId']!),
-                routes: const [
-                  // TODO Add password
-                ],
               ),
               GoRoute(
                 path: 'view-notes',
                 name: 'view notes',
                 builder: (context, state) =>
                     ViewNotes(groupId: state.queryParameters['groupId']!),
-                routes: const [
-// TODO Add notes
-                ],
               ),
             ],
           ),

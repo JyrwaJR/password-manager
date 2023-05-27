@@ -1,15 +1,9 @@
 // ignore_for_file: file_names
-
-import 'dart:ffi';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
-import 'package:password_manager/model/dto/notes_group_dto.dart';
 import 'package:password_manager/model/dto/notes_model_dto.dart';
-import 'package:password_manager/model/model/notes_model.dart';
-import 'package:password_manager/model/model/notes_group.dart';
 import 'package:uuid/uuid.dart';
 
 class FirestoreService {
@@ -29,25 +23,19 @@ class FirestoreService {
 
 // ! Write
   Future<void> registerUser(UserDTO userDTO, BuildContext context) async {
-    if (userDTO.validate()) {
-      try {
-        final masterKey = MasterKeyGenerator.generateKey();
-        await _UsersCollection.doc(userDTO.uid)
-            .set(userDTO.toMap(masterKey))
-            .then((value) => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('User registered successfully!')),
-                ));
-      } on FirebaseException catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.message!)));
-      } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString())));
-      }
-    } else {
+    try {
+      final masterKey = MasterKeyGenerator.generateKey();
+      await _UsersCollection.doc(userDTO.uid)
+          .set(userDTO.toMap(masterKey))
+          .then((value) => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('User registered successfully!')),
+              ));
+    } on FirebaseException catch (e) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Invalid Data')));
+          .showSnackBar(SnackBar(content: Text(e.message!)));
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -83,15 +71,14 @@ class FirestoreService {
     String uid,
     BuildContext context,
   ) async {
-    final userKey = await getUserKey(uid, context);
-    if (userKey == null) {
-      return null;
-    }
-
     final listOfGroups = await _GroupPasswordsCollection.get();
     final groups = listOfGroups.docs;
 
     if (groups.isNotEmpty) {
+      final userKey = await getUserKey(uid, context);
+      if (userKey == null) {
+        return null;
+      }
       for (final group in groups) {
         final masterKey = await getMasterKey(uid, group['groupId'], context);
         if (masterKey != null) {
@@ -113,7 +100,6 @@ class FirestoreService {
         }
       }
     }
-
     final groupId = await createGroup(groupName, uid, context);
     return groupId;
   }
@@ -256,7 +242,6 @@ class FirestoreService {
   ) async {
     try {
       final key = await getGroupKey(groupId, uid, context);
-
       if (key != null) {
         await _PasswordsCollection.doc(passwordDTO.passwordId)
             .set(
@@ -400,6 +385,7 @@ class FirestoreService {
           .collection("Users")
           .where('uid', isEqualTo: uid)
           .get();
+
       if (result.docs.isNotEmpty) {
         final masterKey = result.docs[0].data()['key'];
         return masterKey;
@@ -493,7 +479,8 @@ class FirestoreService {
           final groupPassword =
               NotesGroup.noteGroupDataFromSnapshot(noteGroupData, masterKey);
           groupPasswords.addAll(
-              groupPassword); // add the GroupPassword objects to the list
+            groupPassword,
+          ); // add the GroupPassword objects to the list
         }
       }
       return groupPasswords;
@@ -522,7 +509,6 @@ class FirestoreService {
         .snapshots()
         .asyncMap((snapshot) async {
       final masterKey = await getMasterKey(uid, groupId, context);
-
       return NotesGroup.noteGroupDataFromSnapshotByGroupId(
           snapshot, masterKey ?? '');
     }).handleError(
@@ -553,7 +539,11 @@ class FirestoreService {
     String uid,
     BuildContext context,
   ) {
-    return _NotesCollection.where('groupId', isEqualTo: groupId)
+    return _NotesCollection.orderBy(
+      'dateCreated',
+      descending: true,
+    )
+        .where('groupId', isEqualTo: groupId)
         .snapshots()
         .asyncMap((snapshot) async {
           final groupKey = await getNotesGroupKey(groupId, uid, context);
@@ -576,12 +566,66 @@ class FirestoreService {
         final masterKey = await getMasterKey(uid, groupId, context);
         final encryptedGroupName = encryptField(groupName, masterKey!);
         if (isPasswordGroup) {
+          final listOfGroups = await _GroupPasswordsCollection.get();
+          final groups = listOfGroups.docs;
+
+          if (groups.isNotEmpty) {
+            final userKey = await getUserKey(uid, context);
+            if (userKey == null) {
+              return null;
+            }
+            for (final group in groups) {
+              final masterKey =
+                  await getMasterKey(uid, group['groupId'], context);
+              if (masterKey != null) {
+                final eGroupName = decryptField(group['groupName'], masterKey);
+                if (eGroupName.toLowerCase() == groupName.toLowerCase()) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Group name already exists')),
+                  );
+                  return;
+                }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text(
+                          'Error retrieving group master key. Please try again')),
+                );
+              }
+            }
+          }
           return await _GroupPasswordsCollection.doc(groupId).update({
             'groupName': encryptedGroupName,
+            'dateCreated':
+                encryptField(DateTime.now().toIso8601String(), masterKey)
           });
         } else {
+          final listOfGroups = await _NotesGroupCollection.get();
+          final groups = listOfGroups.docs;
+          if (groups.isNotEmpty) {
+            for (final group in groups) {
+              final masterKey =
+                  await getMasterKey(uid, group['groupId'], context);
+              if (masterKey != null) {
+                final eGroupName = decryptField(group['groupName'], masterKey);
+                if (eGroupName.toLowerCase() == groupName.toLowerCase()) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Group name already exists')),
+                  );
+                }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text(
+                          'Error retrieving group master key. Please try again')),
+                );
+              }
+            }
+          }
           return await _NotesGroupCollection.doc(groupId).update({
             'groupName': encryptedGroupName,
+            'dateCreated':
+                encryptField(DateTime.now().toIso8601String(), masterKey)
           });
         }
       } on FirebaseException catch (e) {
@@ -594,11 +638,67 @@ class FirestoreService {
     }
   }
 
+  Future<void> updateNotesNameByNoteId(
+    String noteId,
+    String groupId,
+    String uid,
+    String newName,
+    BuildContext context,
+  ) async {
+    final groupKey = await getNotesGroupKey(groupId, uid, context);
+    if (groupKey != null) {
+      final noteslist =
+          await _NotesCollection.where('groupId', isEqualTo: groupId).get();
+      final notes = noteslist.docs;
+      if (notes.isNotEmpty) {
+        for (final note in notes) {
+          final noteName = decryptField(note['notesName'], groupKey);
+          if (noteName.toLowerCase() == newName.toLowerCase()) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text(
+                      'Note name already exists, Please choose another name')),
+            );
+            return;
+          }
+        }
+      }
+      return await _NotesCollection.doc(noteId).update({
+        'notesName': encryptField(newName, groupKey),
+        'dateCreated': encryptField(DateTime.now().toIso8601String(), groupKey)
+      }).then((value) => ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Note name updated'))));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error Getting key, Please try again,')),
+      );
+    }
+  }
+
   // ! Delete
   Future<void> deletePasswordById(
-      String passwordId, BuildContext context) async {
+    String passwordId,
+    BuildContext context,
+  ) async {
     try {
       return await _PasswordsCollection.doc(passwordId).delete().then((value) =>
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Password deleted'))));
+    } on FirebaseException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  Future<void> deleteNotesById(
+    String notesId,
+    BuildContext context,
+  ) async {
+    try {
+      return await _NotesCollection.doc(notesId).delete().then((value) =>
           ScaffoldMessenger.of(context)
               .showSnackBar(const SnackBar(content: Text('Password deleted'))));
     } on FirebaseException catch (e) {
