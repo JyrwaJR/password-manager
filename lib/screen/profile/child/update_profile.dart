@@ -10,20 +10,56 @@ class UpdateProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const AppBarTitle(title: 'Back'),
+    final store = FirestoreService();
+    return StreamBuilder<UserModel>(
+      stream: store.getUserData(uid, context),
+      initialData: UserModel(
+        userName: '',
+        email: '',
+        uid: '',
+        key: '',
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        itemCount: 20,
-        itemBuilder: (BuildContext context, int index) {
-          return;
-        },
-        separatorBuilder: (context, index) => const SizedBox(
-          height: 10,
-        ),
-      ),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        } else if (snapshot.connectionState == ConnectionState.active) {
+          if (snapshot.hasData || snapshot.data != null) {
+            final user = snapshot.data;
+            return Center(
+              child: Text(
+                user.userName,
+              ),
+            );
+          } else {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Center(
+                  child: FlutterLogo(
+                    size: 50,
+                  ),
+                ),
+                const BrandSizeBox(
+                  height: 20,
+                ),
+                Text(
+                  'Something went wrong. Please try again after sometime.',
+                  style: TextStyle(
+                    fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
+                  ),
+                ),
+              ],
+            );
+          }
+        } else {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+      },
     );
   }
 }

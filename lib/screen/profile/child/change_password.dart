@@ -23,7 +23,7 @@ class _ChangePasswordState extends State<ChangePassword> {
 
   @override
   void initState() {
-    // _emailController.text = auth.currentUser!.email ?? '';
+    _emailController.text = auth.currentUser!.email ?? '';
     super.initState();
   }
 
@@ -34,36 +34,32 @@ class _ChangePasswordState extends State<ChangePassword> {
       appBar: AppBar(
         title: const Text('Back'),
         automaticallyImplyLeading: true,
-        backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(
-          color: Colors.black,
-        ),
-        elevation: 0,
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-          child: ListView(
-            children: [
-              const SizedBox(
-                height: 20,
+      body: Padding(
+        padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+        child: ListView(
+          children: [
+            const SizedBox(
+              height: 20,
+            ),
+            BrandTitle(title: 'Change Password', id: uid ?? ''),
+            const SizedBox(
+              height: 20,
+            ),
+            const Text(
+              "Enter your email",
+              style: TextStyle(
+                fontSize: 60,
+                fontWeight: FontWeight.w600,
               ),
-              BrandTitle(title: 'Change Password', id: uid ?? ''),
-              const SizedBox(
-                height: 20,
-              ),
-              const Text(
-                "Enter your email",
-                style: TextStyle(
-                  fontSize: 60,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              TextFormField(
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            Form(
+              key: _formKey,
+              child: TextFormField(
+                readOnly: true,
                 keyboardType: TextInputType.emailAddress,
                 controller: _emailController,
                 validator: (value) {
@@ -83,9 +79,6 @@ class _ChangePasswordState extends State<ChangePassword> {
                     value = _emailController.text;
                   });
                 },
-                style: const TextStyle(
-                  color: Colors.black87,
-                ),
                 decoration: InputDecoration(
                   labelText: 'Email',
                   helperText: 'Enter your email to change your password',
@@ -98,85 +91,81 @@ class _ChangePasswordState extends State<ChangePassword> {
                           },
                           icon: const Icon(
                             Icons.clear_rounded,
-                            color: Colors.black,
                           ),
                         ),
-                  labelStyle: const TextStyle(
-                    color: Colors.black,
-                  ),
                 ),
               ),
-              const SizedBox(
-                height: 30,
-              ),
-              SizedBox(
-                height: 55,
-                width: MediaQuery.of(context).size.width,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text('Change Password'),
-                            content: const Text(
-                                'Are you sure you want to change your password?'),
-                            actions: [
-                              TextButton(
-                                  onPressed: () async {
-                                    final auth = FirebaseAuthService();
-                                    await auth
-                                        .resetPassword(
-                                            _emailController.text, context)
-                                        .then(
-                                          (value) => showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text('Opp!'),
-                                              content: Text(
-                                                  'Email sent success-full to your email address ${_emailController.text}'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    _emailController.clear();
-                                                    _formKey.currentState!
-                                                        .reset();
-                                                    context.go('/home');
-                                                    Navigator.pop(context);
-                                                  },
-                                                  child: const Text('Ok'),
-                                                ),
-                                              ],
-                                            ),
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            SizedBox(
+              height: 55,
+              width: MediaQuery.of(context).size.width,
+              child: BrandButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('Change Password'),
+                          content: const Text(
+                              'Are you sure you want to change your password?'),
+                          actions: [
+                            TextButton(
+                                onPressed: () async {
+                                  final auth = FirebaseAuthService();
+                                  await auth
+                                      .resetPassword(
+                                          _emailController.text, context)
+                                      .then(
+                                        (value) => showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text('Opp!'),
+                                            content: Text(
+                                                'Email send to your email address ${_emailController.text}'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  _emailController.clear();
+                                                  _formKey.currentState!
+                                                      .reset();
+                                                  context.go('/profile');
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text('Ok'),
+                                              ),
+                                            ],
                                           ),
-                                        );
-                                    if (!mounted) {
-                                      return;
-                                    }
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text('Yes')),
-                              TextButton(
-                                  onPressed: () {
-                                    _formKey.currentState!.reset();
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('No'))
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
-                  child: const Text('Send'),
-                ),
+                                        ),
+                                      );
+                                  if (!mounted) {
+                                    return;
+                                  }
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Yes')),
+                            TextButton(
+                                onPressed: () {
+                                  _formKey.currentState!.reset();
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('No'))
+                          ],
+                        );
+                      },
+                    );
+                  }
+                },
+                title: 'Send',
               ),
-              const SizedBox(
-                height: 30,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+          ],
         ),
       ),
     );

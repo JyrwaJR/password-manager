@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,16 +24,22 @@ class _HomeState extends State<Home> {
   String generatedPassword = '';
 
   void _generate() {
-    String password = GeneratePasswordService.generatePassword(
-      includeLetters: _includeLetter,
-      includeNumbers: _includeNumber,
-      includeSymbols: _includeSymbol,
-      length: passLength,
-      context: context,
-    );
-    setState(() {
-      generatedPassword = password;
-    });
+    if (_includeLetter || _includeNumber || _includeSymbol) {
+      String password = GeneratePasswordService.generatePassword(
+        includeLetters: _includeLetter,
+        includeNumbers: _includeNumber,
+        includeSymbols: _includeSymbol,
+        length: passLength,
+        context: context,
+      );
+      setState(() {
+        generatedPassword = password;
+      });
+    } else {
+      brandAlertDialogSingleButton(
+          'Password cannot be generate without any Symbol, Number or Letter . \n\n Please include at least one setting from Below',
+          context);
+    }
   }
 
   //! call back function to update include symbols
@@ -55,50 +63,42 @@ class _HomeState extends State<Home> {
 
   //! call back function to update password length
   void _updatePasswordLength(int length) {
-    setState(() {
-      passLength = length;
-    });
+    if (_includeLetter || _includeSymbol || _includeNumber) {
+      setState(() {
+        passLength = length;
+        _generate();
+      });
+    } else {
+      setState(() {
+        passLength = length;
+      });
+    }
   }
 
   void _onPressedSavePassword() {
-    if (generatedPassword.length < 5) {
+    if (generatedPassword.isEmpty) {
       if (!mounted) {
         return;
       }
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Oops!'),
-            content: const Text(
-              'Please generate a password first and then save your password',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
-              )
-            ],
-          );
-        },
-      );
-    } else {
-      if (!mounted) {
-        return;
-      }
-      showCupertinoDialog(
-        context: context,
-        builder: (context) =>
-            SavePassword(generatedPassword: generatedPassword),
-      );
+      brandAlertDialogSingleButton(
+          'Please generate a password to continue. \n\n Please include at least one setting from Below',
+          context);
+      return;
     }
+    if (!mounted) {
+      return;
+    }
+    showCupertinoDialog(
+      useRootNavigator: true,
+      context: context,
+      builder: (context) => SavePassword(generatedPassword: generatedPassword),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
       appBar: AppBar(
         title: const AppBarTitle(title: 'DASHBOARD'),

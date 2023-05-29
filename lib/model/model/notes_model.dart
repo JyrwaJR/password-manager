@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:password_manager/export.dart';
 
 class NotesModel {
@@ -18,28 +19,28 @@ class NotesModel {
     required this.title,
   });
   static List<NotesModel> listOfNotesDataFromSnapshot(
-      QuerySnapshot snapshot, key) {
+      QuerySnapshot snapshot, key, BuildContext context) {
     return snapshot.docs.map((doc) {
       return NotesModel(
         groupId: doc['groupId'] ?? '',
         notesId: doc['notesId'] ?? '',
-        notes: decryptField(doc['notes'], key),
-        title: decryptField(doc['title'], key),
-        notesName: decryptField(doc['notesName'], key),
-        dateCreated: decryptField(doc['dateCreated'], key),
+        notes: decryptField(doc['notes'], key, context),
+        title: decryptField(doc['title'], key, context),
+        notesName: decryptField(doc['notesName'], key, context),
+        dateCreated: decryptField(doc['dateCreated'], key, context),
       );
     }).toList();
   }
 
   static NotesModel notesDataFromSnapshotById(
-      DocumentSnapshot doc, String masterKey) {
+      DocumentSnapshot doc, String masterKey, BuildContext context) {
     return NotesModel(
       groupId: doc['groupId'] ?? '',
       notesId: doc['passwordId'] ?? '',
-      notes: decryptField(doc['password'], masterKey),
-      notesName: decryptField(doc['userName'], masterKey),
-      title: decryptField(doc['title'], masterKey),
-      dateCreated: decryptField(doc['dateCreated'], masterKey),
+      notes: decryptField(doc['password'], masterKey, context),
+      notesName: decryptField(doc['userName'], masterKey, context),
+      title: decryptField(doc['title'], masterKey, context),
+      dateCreated: decryptField(doc['dateCreated'], masterKey, context),
     );
   }
 }

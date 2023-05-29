@@ -31,11 +31,7 @@ class _PasswordState extends State<Password> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(
-          color: Colors.black,
-        ),
-        elevation: 0,
+        automaticallyImplyLeading: true,
       ),
       body: Form(
         key: _formKey,
@@ -153,13 +149,8 @@ class _PasswordState extends State<Password> {
                                   _isLoading = false;
                                 });
                               } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      e.toString(),
-                                    ),
-                                  ),
-                                );
+                                BrandSnackbar.showSnackBar(
+                                    context, e.toString());
                                 setState(() {
                                   _isLoading = false;
                                 });

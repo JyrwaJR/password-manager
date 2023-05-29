@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:password_manager/constant/export_constant.dart';
 
 class NotesGroupDTO {
@@ -16,13 +17,13 @@ class NotesGroupDTO {
   });
 
   // to map
-  Map<String, dynamic> toMap(masterKey) {
+  Map<String, dynamic> toMap(masterKey, BuildContext context) {
     return {
       'groupId': groupId,
       'uid': uid,
-      'groupName': encryptField(groupName, masterKey),
-      'dateCreated': encryptField(dateCreated, masterKey),
-      'key': encryptField(key, masterKey),
+      'groupName': encryptField(groupName, masterKey, context),
+      'dateCreated': encryptField(dateCreated, masterKey, context),
+      'key': encryptField(key, masterKey, context),
     };
   }
 }

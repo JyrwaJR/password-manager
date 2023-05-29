@@ -109,9 +109,8 @@ class _RenameNotesBottomSheetState extends State<RenameNotesBottomSheet> {
                                 )
                                 .then((value) => Navigator.pop(context));
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Please enter group name')));
+                            BrandSnackbar.showSnackBar(
+                                context, 'Please enter group name');
                           }
                         }
                       },

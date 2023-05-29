@@ -34,8 +34,7 @@ class _ProfileState extends State<Profile> {
       context.goNamed('report bug',
           queryParameters: <String, String>{'uid': widget.uid});
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Try again')));
+      BrandSnackbar.showSnackBar(context, 'Try again');
     }
   }
 

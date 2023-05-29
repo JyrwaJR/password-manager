@@ -7,23 +7,9 @@ class Vault extends StatefulWidget {
   @override
   State<Vault> createState() => VaultState();
 }
-// Tab controller
 
 class VaultState extends State<Vault> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +20,9 @@ class VaultState extends State<Vault> with SingleTickerProviderStateMixin {
           controller: _tabController,
           tabs: const [
             Tab(text: 'Passwords'),
-            Tab(text: 'Notes'),
+            Tab(
+              text: 'Notes',
+            ),
           ],
         ),
       ),
@@ -46,5 +34,17 @@ class VaultState extends State<Vault> with SingleTickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 }

@@ -27,15 +27,12 @@ class FirestoreService {
       final masterKey = MasterKeyGenerator.generateKey();
       await _UsersCollection.doc(userDTO.uid)
           .set(userDTO.toMap(masterKey))
-          .then((value) => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('User registered successfully!')),
-              ));
+          .then((value) => BrandSnackbar.showSnackBar(
+              context, 'User registered successfully!'));
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message!)));
+      BrandSnackbar.showSnackBar(context, e.message ?? 'something went wrong');
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 
@@ -56,13 +53,12 @@ class FirestoreService {
         await firestore
             .collection('Master Keys')
             .doc(masterId)
-            .set(masterKeyDto.toMap(key))
-            .then((value) => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Master key generated'))));
+            .set(masterKeyDto.toMap(key, context))
+            .then((value) =>
+                BrandSnackbar.showSnackBar(context, 'Master key generated'));
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Master key already Generated')));
+      BrandSnackbar.showSnackBar(context, 'Master key already Generated');
     }
   }
 
@@ -82,20 +78,16 @@ class FirestoreService {
       for (final group in groups) {
         final masterKey = await getMasterKey(uid, group['groupId'], context);
         if (masterKey != null) {
-          final eGroupName = decryptField(group['groupName'], masterKey);
+          final eGroupName =
+              decryptField(group['groupName'], masterKey, context);
           if (eGroupName.toLowerCase() == groupName.toLowerCase()) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Group name already exists')),
-            );
+            BrandSnackbar.showSnackBar(context, 'Group name already exists');
             final id = group['groupId'];
             return id;
           }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text(
-                    'Error retrieving group master key. Please try again')),
-          );
+          BrandSnackbar.showSnackBar(
+              context, 'Error retrieving group master key. Please try again');
           return null;
         }
       }
@@ -121,20 +113,16 @@ class FirestoreService {
       for (final group in groups) {
         final masterKey = await getMasterKey(uid, group['groupId'], context);
         if (masterKey != null) {
-          final eGroupName = decryptField(group['groupName'], masterKey);
+          final eGroupName =
+              decryptField(group['groupName'], masterKey, context);
           if (eGroupName.toLowerCase() == groupName.toLowerCase()) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Group name already exists')),
-            );
+            BrandSnackbar.showSnackBar(context, 'Group name already exists');
             final id = group['groupId'];
             return id;
           }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text(
-                    'Error retrieving group master key. Please try again')),
-          );
+          BrandSnackbar.showSnackBar(
+              context, 'Error retrieving group master key. Please try again');
           return null;
         }
       }
@@ -160,7 +148,7 @@ class FirestoreService {
             key: masterKey,
             dateCreated: DateTime.now().toIso8601String());
         await _MasterKeysCollection.doc(masterId)
-            .set(masterKeyDto.toMap(userKey));
+            .set(masterKeyDto.toMap(userKey, context));
         // ! Group
         final groupKey = MasterKeyGenerator.generateKey();
         final groupPasswordDTO = GroupPasswordDTO(
@@ -170,7 +158,7 @@ class FirestoreService {
             uid: uid,
             key: groupKey);
         await _GroupPasswordsCollection.doc(groupId)
-            .set(groupPasswordDTO.toMap(masterKey))
+            .set(groupPasswordDTO.toMap(masterKey, context))
             .then((value) => context.goNamed('view group password',
                 queryParameters: <String, String>{'groupId': groupId}));
         return groupId;
@@ -178,12 +166,10 @@ class FirestoreService {
         return null;
       }
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
       return null;
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
       return null;
     }
   }
@@ -207,7 +193,7 @@ class FirestoreService {
             key: masterKey,
             dateCreated: DateTime.now().toIso8601String());
         await _MasterKeysCollection.doc(masterId)
-            .set(masterKeyDto.toMap(userKey));
+            .set(masterKeyDto.toMap(userKey, context));
         // ! Group
         final groupKey = MasterKeyGenerator.generateKey();
         final noteGroupDTO = NotesGroupDTO(
@@ -218,18 +204,16 @@ class FirestoreService {
           key: groupKey,
         );
         await _NotesGroupCollection.doc(groupId)
-            .set(noteGroupDTO.toMap(masterKey));
+            .set(noteGroupDTO.toMap(masterKey, context));
         return groupId;
       } else {
         return null;
       }
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
       return null;
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
       return null;
     }
   }
@@ -245,22 +229,19 @@ class FirestoreService {
       if (key != null) {
         await _PasswordsCollection.doc(passwordDTO.passwordId)
             .set(
-              passwordDTO.toMap(key, groupId),
+              passwordDTO.toMap(key, groupId, context),
             )
             .then((value) => context.goNamed('view group password',
                 queryParameters: <String, String>{'groupId': groupId}))
-            .then((value) => ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text('Password added'))));
+            .then((value) =>
+                BrandSnackbar.showSnackBar(context, 'Password added'));
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Please try again')));
+        BrandSnackbar.showSnackBar(context, 'Please try again');
       }
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 
@@ -277,22 +258,18 @@ class FirestoreService {
       if (key != null) {
         await _NotesCollection.doc(noteDTO.notesId)
             .set(
-              noteDTO.toMap(key, groupId),
+              noteDTO.toMap(key, groupId, context),
             )
             .then((value) => context.goNamed('view notes',
                 queryParameters: <String, String>{'groupId': groupId}))
-            .then((value) => ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text('Note added'))));
+            .then((value) => BrandSnackbar.showSnackBar(context, 'Note added'));
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Please try again')));
+        BrandSnackbar.showSnackBar(context, 'Please try again');
       }
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 
@@ -314,12 +291,10 @@ class FirestoreService {
       }
       return null;
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
       return null;
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
       return null;
     }
   }
@@ -333,7 +308,7 @@ class FirestoreService {
             await firestore.collection('Notes Group').doc(groupId).get();
         if (groupData.data()?['key'] != null) {
           final encryptedKey = groupData.data()?['key'];
-          final groupKey = decryptField(encryptedKey, masterKey);
+          final groupKey = decryptField(encryptedKey, masterKey, context);
           return groupKey;
         } else {
           return null;
@@ -341,12 +316,10 @@ class FirestoreService {
       }
       return null;
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
       return null;
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
       return null;
     }
   }
@@ -367,14 +340,10 @@ class FirestoreService {
         return null;
       }
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message.toString())),
-      );
+      BrandSnackbar.showSnackBar(context, e.message.toString());
       return null;
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      BrandSnackbar.showSnackBar(context, e.toString());
       return null;
     }
   }
@@ -390,20 +359,14 @@ class FirestoreService {
         final masterKey = result.docs[0].data()['key'];
         return masterKey;
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('User key not found'),
-        ));
+        BrandSnackbar.showSnackBar(context, 'User key not found');
         return null;
       }
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message.toString())),
-      );
+      BrandSnackbar.showSnackBar(context, e.message.toString());
       return null;
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      BrandSnackbar.showSnackBar(context, e.toString());
       return null;
     }
   }
@@ -413,8 +376,7 @@ class FirestoreService {
         .snapshots()
         .map(UserModel.userDataFromSnapshot)
         .handleError((e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
     });
   }
 
@@ -424,7 +386,8 @@ class FirestoreService {
     return _PasswordsCollection.doc(id).snapshots().asyncMap((snapshot) async {
       final groupKey = await getGroupKey(groupId, uid, context);
       if (groupKey != null) {
-        return PasswordModel.passwordDataFromSnapshotById(snapshot, groupKey);
+        return PasswordModel.passwordDataFromSnapshotById(
+            snapshot, groupKey, context);
       } else {
         return const PasswordModel(
             groupId: '',
@@ -453,14 +416,13 @@ class FirestoreService {
                   isEqualTo: groupId)
               .get();
           final groupPassword = GroupPassword.groupPasswordDataFromSnapshot(
-              groupPasswordData, masterKey);
+              groupPasswordData, masterKey, context);
           groupPasswords.addAll(
               groupPassword); // add the GroupPassword objects to the list
         }
       }
       return groupPasswords;
-    }).handleError((e) => ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString()))));
+    }).handleError((e) => BrandSnackbar.showSnackBar(context, e.toString()));
   }
 
   Stream<List<NotesGroup>> getNotesGroup(String uid, context) {
@@ -476,16 +438,15 @@ class FirestoreService {
           final noteGroupData =
               await _NotesGroupCollection.where('groupId', isEqualTo: groupId)
                   .get();
-          final groupPassword =
-              NotesGroup.noteGroupDataFromSnapshot(noteGroupData, masterKey);
+          final groupPassword = NotesGroup.noteGroupDataFromSnapshot(
+              noteGroupData, masterKey, context);
           groupPasswords.addAll(
             groupPassword,
           ); // add the GroupPassword objects to the list
         }
       }
       return groupPasswords;
-    }).handleError((e) => ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString()))));
+    }).handleError((e) => BrandSnackbar.showSnackBar(context, e.toString()));
   }
 
   Stream<GroupPassword> getGroupPasswordWithGroupId(
@@ -496,11 +457,8 @@ class FirestoreService {
       final masterKey = await getMasterKey(uid, groupId, context);
 
       return GroupPassword.groupPasswordDataFromSnapshotByGroupId(
-          snapshot, masterKey ?? '');
-    }).handleError(
-      (e) => ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString()))),
-    );
+          snapshot, masterKey ?? '', context);
+    }).handleError((e) => BrandSnackbar.showSnackBar(context, e.toString()));
   }
 
   Stream<NotesGroup> getNotesGroupByGroupId(
@@ -510,11 +468,8 @@ class FirestoreService {
         .asyncMap((snapshot) async {
       final masterKey = await getMasterKey(uid, groupId, context);
       return NotesGroup.noteGroupDataFromSnapshotByGroupId(
-          snapshot, masterKey ?? '');
-    }).handleError(
-      (e) => ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString()))),
-    );
+          snapshot, masterKey ?? '', context);
+    }).handleError((e) => BrandSnackbar.showSnackBar(context, e.toString()));
   }
 
   Stream<List<PasswordModel>> viewGroupPasswordWithKey(
@@ -527,10 +482,9 @@ class FirestoreService {
             return [];
           }
           return PasswordModel.groupPasswordDataFromSnapshot(
-              snapshot, groupKey);
+              snapshot, groupKey, context);
         })
-        .handleError((e) => ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString()))))
+        .handleError((e) => BrandSnackbar.showSnackBar(context, e.toString()))
         .cast<List<PasswordModel>>();
   }
 
@@ -550,10 +504,10 @@ class FirestoreService {
           if (groupKey == null) {
             return [];
           }
-          return NotesModel.listOfNotesDataFromSnapshot(snapshot, groupKey);
+          return NotesModel.listOfNotesDataFromSnapshot(
+              snapshot, groupKey, context);
         })
-        .handleError((e) => ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString()))))
+        .handleError((e) => BrandSnackbar.showSnackBar(context, e.toString()))
         .cast<List<NotesModel>>();
   }
 
@@ -564,7 +518,7 @@ class FirestoreService {
     if (uid.isNotEmpty) {
       try {
         final masterKey = await getMasterKey(uid, groupId, context);
-        final encryptedGroupName = encryptField(groupName, masterKey!);
+        final encryptedGroupName = encryptField(groupName, masterKey!, context);
         if (isPasswordGroup) {
           final listOfGroups = await _GroupPasswordsCollection.get();
           final groups = listOfGroups.docs;
@@ -572,32 +526,29 @@ class FirestoreService {
           if (groups.isNotEmpty) {
             final userKey = await getUserKey(uid, context);
             if (userKey == null) {
-              return null;
+              return;
             }
             for (final group in groups) {
               final masterKey =
                   await getMasterKey(uid, group['groupId'], context);
               if (masterKey != null) {
-                final eGroupName = decryptField(group['groupName'], masterKey);
+                final eGroupName =
+                    decryptField(group['groupName'], masterKey, context);
                 if (eGroupName.toLowerCase() == groupName.toLowerCase()) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Group name already exists')),
-                  );
+                  BrandSnackbar.showSnackBar(
+                      context, 'Group name already exists');
                   return;
                 }
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text(
-                          'Error retrieving group master key. Please try again')),
-                );
+                BrandSnackbar.showSnackBar(context,
+                    'Error retrieving group master key. Please try again');
               }
             }
           }
           return await _GroupPasswordsCollection.doc(groupId).update({
             'groupName': encryptedGroupName,
-            'dateCreated':
-                encryptField(DateTime.now().toIso8601String(), masterKey)
+            'dateCreated': encryptField(
+                DateTime.now().toIso8601String(), masterKey, context)
           });
         } else {
           final listOfGroups = await _NotesGroupCollection.get();
@@ -607,33 +558,28 @@ class FirestoreService {
               final masterKey =
                   await getMasterKey(uid, group['groupId'], context);
               if (masterKey != null) {
-                final eGroupName = decryptField(group['groupName'], masterKey);
+                final eGroupName =
+                    decryptField(group['groupName'], masterKey, context);
                 if (eGroupName.toLowerCase() == groupName.toLowerCase()) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Group name already exists')),
-                  );
+                  BrandSnackbar.showSnackBar(
+                      context, 'Group name already exists');
                 }
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text(
-                          'Error retrieving group master key. Please try again')),
-                );
+                BrandSnackbar.showSnackBar(context,
+                    'Error retrieving group master key. Please try again');
               }
             }
           }
           return await _NotesGroupCollection.doc(groupId).update({
             'groupName': encryptedGroupName,
-            'dateCreated':
-                encryptField(DateTime.now().toIso8601String(), masterKey)
+            'dateCreated': encryptField(
+                DateTime.now().toIso8601String(), masterKey, context)
           });
         }
       } on FirebaseException catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.message.toString())));
+        BrandSnackbar.showSnackBar(context, e.message.toString());
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString())));
+        BrandSnackbar.showSnackBar(context, e.toString());
       }
     }
   }
@@ -652,26 +598,23 @@ class FirestoreService {
       final notes = noteslist.docs;
       if (notes.isNotEmpty) {
         for (final note in notes) {
-          final noteName = decryptField(note['notesName'], groupKey);
+          final noteName = decryptField(note['notesName'], groupKey, context);
           if (noteName.toLowerCase() == newName.toLowerCase()) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text(
-                      'Note name already exists, Please choose another name')),
-            );
+            BrandSnackbar.showSnackBar(context,
+                'Note name already exists, Please choose another name');
             return;
           }
         }
       }
       return await _NotesCollection.doc(noteId).update({
-        'notesName': encryptField(newName, groupKey),
-        'dateCreated': encryptField(DateTime.now().toIso8601String(), groupKey)
-      }).then((value) => ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Note name updated'))));
+        'notesName': encryptField(newName, groupKey, context),
+        'dateCreated':
+            encryptField(DateTime.now().toIso8601String(), groupKey, context)
+      }).then(
+          (value) => BrandSnackbar.showSnackBar(context, 'Note name updated'));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error Getting key, Please try again,')),
-      );
+      BrandSnackbar.showSnackBar(
+          context, 'Error Getting key, Please try again,');
     }
   }
 
@@ -681,15 +624,12 @@ class FirestoreService {
     BuildContext context,
   ) async {
     try {
-      return await _PasswordsCollection.doc(passwordId).delete().then((value) =>
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('Password deleted'))));
+      return await _PasswordsCollection.doc(passwordId).delete().then(
+          (value) => BrandSnackbar.showSnackBar(context, 'Password deleted'));
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 
@@ -698,15 +638,12 @@ class FirestoreService {
     BuildContext context,
   ) async {
     try {
-      return await _NotesCollection.doc(notesId).delete().then((value) =>
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('Password deleted'))));
+      return await _NotesCollection.doc(notesId).delete().then(
+          (value) => BrandSnackbar.showSnackBar(context, 'Password deleted'));
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 
@@ -752,11 +689,9 @@ class FirestoreService {
             .then((value) => _NotesGroupCollection.doc(groupId).delete());
       }
     } on FirebaseException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 }

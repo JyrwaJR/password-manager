@@ -265,8 +265,7 @@ class PasswordCard extends StatelessWidget {
     return InkWell(
       onTap: () {
         copyToClipboard(password.password);
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Password copy successful')));
+        BrandSnackbar.showSnackBar(context, 'Password copy successful');
       },
       child: Card(
         child: Padding(

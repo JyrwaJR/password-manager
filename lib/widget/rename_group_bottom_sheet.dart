@@ -20,6 +20,7 @@ class _RenameGroupBottomSheetState extends State<RenameGroupBottomSheet> {
   String? isNewGroupName;
   final store = FirestoreService();
   final uid = FirebaseAuth.instance.currentUser?.uid;
+  
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -96,8 +97,8 @@ class _RenameGroupBottomSheetState extends State<RenameGroupBottomSheet> {
                               isNewGroupName!, widget.isPasswordGroup, context)
                           .then((value) => Navigator.pop(context));
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text('Please enter group name')));
+                      BrandSnackbar.showSnackBar(
+                          context, 'Please enter group name');
                     }
                   }
                 },

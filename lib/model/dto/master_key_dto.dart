@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 
+import 'package:flutter/material.dart';
 import 'package:password_manager/export.dart';
 
 class MasterKeyDTO {
@@ -17,13 +18,13 @@ class MasterKeyDTO {
     required this.dateCreated,
   });
   // create to map
-  Map<String, dynamic> toMap(String masterKey) {
+  Map<String, dynamic> toMap(String masterKey, BuildContext context) {
     return {
       'uid': uid,
       'groupId': groupId,
       'masterId': masterId,
-      'key': encryptField(key, masterKey),
-      'dateCreated': encryptField(dateCreated, masterKey),
+      'key': encryptField(key, masterKey, context),
+      'dateCreated': encryptField(dateCreated, masterKey, context),
     };
   }
 }

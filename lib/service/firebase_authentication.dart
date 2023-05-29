@@ -23,8 +23,9 @@ class FirebaseAuthService {
     try {
       await auth.signOut();
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message!)));
+      BrandSnackbar.showSnackBar(context, e.message!);
+    } catch (e) {
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 
@@ -38,11 +39,10 @@ class FirebaseAuthService {
       return _userFromFirebase(user!);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('No user found for that email. Please register')));
+        BrandSnackbar.showSnackBar(
+            context, 'No user found for that email. Please register');
       } else if (e.code == 'wrong-password') {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Password is invalid.')));
+        BrandSnackbar.showSnackBar(context, 'Password is invalid.');
       }
     }
     return null;
@@ -57,12 +57,10 @@ class FirebaseAuthService {
       final User? user = result.user;
       return _userFromFirebase(user!);
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
       return null;
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
       return null;
     }
   }
@@ -76,11 +74,9 @@ class FirebaseAuthService {
           .then((value) => store.deleteGroupPassword(groupId, false, context))
           .then((value) => auth.currentUser?.delete());
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 
@@ -89,11 +85,9 @@ class FirebaseAuthService {
     try {
       await auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 
@@ -102,11 +96,9 @@ class FirebaseAuthService {
     try {
       await auth.currentUser!.updateEmail(email);
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 }

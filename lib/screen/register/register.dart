@@ -34,11 +34,7 @@ class _RegisterState extends State<Register> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(
-          color: Colors.black,
-        ),
-        elevation: 0,
+        automaticallyImplyLeading: true,
       ),
       body: Form(
         key: _formKey,
@@ -278,17 +274,15 @@ class _RegisterState extends State<Register> {
                                         .then(
                                             (value) => context.goNamed('home'));
                                   } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text('Please try again')));
+                                    BrandSnackbar.showSnackBar(
+                                        context, 'Please try again');
                                   }
                                 } on FirebaseAuthException catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(e.message.toString())));
+                                  BrandSnackbar.showSnackBar(
+                                      context, e.message.toString());
                                 } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(e.toString())));
+                                  BrandSnackbar.showSnackBar(
+                                      context, e.toString());
                                 }
                               }
                               setState(() {

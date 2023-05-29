@@ -123,7 +123,7 @@ class AppRouter {
       GoRoute(
         path: '/un-support',
         name: 'un-support',
-        builder: (context, state) => const UnSupportScreen(),
+        builder: (context, state) => const Placeholder(),
       ),
       GoRoute(
         path: '/',
