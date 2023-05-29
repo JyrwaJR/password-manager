@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:password_manager/export.dart';
 import 'package:password_manager/model/dto/notes_model_dto.dart';
-import 'package:password_manager/model/model/notes_model.dart';
 import 'package:uuid/uuid.dart';
 
 class ViewNotes extends StatelessWidget {
@@ -20,7 +19,9 @@ class ViewNotes extends StatelessWidget {
             RenameGroupBottomSheet(groupId: groupId, isPasswordGroup: false),
       );
     } else if (value == '1') {
-      return;
+      showDialog(
+          context: context,
+          builder: (context) => const GetApiKeyNotYetImplemented());
     } else if (value == '2') {
       await deleteGroupWithGroupIdAlertBox(context, false, groupId);
     }
@@ -46,11 +47,9 @@ class ViewNotes extends StatelessWidget {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         children: [
           NotesTitle(groupId: groupId),
-          const SizedBox(height: 10),
-          const Divider(),
           const SizedBox(height: 10),
           NotesCard(
             groupId: groupId,
@@ -59,25 +58,24 @@ class ViewNotes extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // TODO Add notes
           final store = FirestoreService();
-          if (groupId.isNotEmpty) {
-            final noteId = const Uuid().v4();
-            await store.addNotes(
+          final noteId = const Uuid().v1();
+          await store.addNotes(
               NotesModelDTO(
-                notesId: noteId,
-                notes: '123456789',
-                dateCreated: '123456789',
-                notesName: '123456789',
-              ),
+                  notesId: noteId,
+                  notes:
+                      'In conclusion, AI has become an integral part of our lives, driving innovation and improving efficiency across various sectors. As the field continues to evolve, it is essential to ensure responsible development and deployment of AI technologies to maximize their benefits while minimizing potential risks',
+                  dateCreated: DateTime.now().toIso8601String(),
+                  notesName: 'Harrison',
+                  title: 'What is your name'),
               groupId,
               FirebaseAuth.instance.currentUser?.uid ?? '',
-              context,
-            );
-          }
-          return;
+              context);
         },
-        child: const Icon(Icons.add),
+        child: Icon(
+          Icons.add,
+          color: Theme.of(context).primaryColor,
+        ),
       ),
     );
   }
@@ -113,71 +111,6 @@ class NotesTitle extends StatelessWidget {
           return const BrandTitleShimmer();
         }
       },
-    );
-  }
-}
-
-class NotesCard extends StatelessWidget {
-  const NotesCard({
-    super.key,
-    required this.groupId,
-  });
-  final String groupId;
-
-  @override
-  Widget build(BuildContext context) {
-    final store = FirestoreService();
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-
-    return StreamBuilder<List<NotesModel>>(
-      stream: store.viewNotesGroupWithKey(groupId, uid ?? '', context),
-      initialData: const [],
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        } else if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.data != null) {
-            final data = snapshot.data;
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: data.length,
-              itemBuilder: (context, index) {
-                return NoteCardItems(
-                  model: snapshot.data[index],
-                );
-              },
-            );
-          } else {
-            return const Center(
-              child: Text('Nso notes found'),
-            );
-          }
-        } else {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
-    );
-  }
-}
-
-class NoteCardItems extends StatelessWidget {
-  const NoteCardItems({
-    super.key,
-    required this.model,
-  });
-  final NotesModel model;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        model.notesId,
-      ),
     );
   }
 }

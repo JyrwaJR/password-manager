@@ -16,11 +16,9 @@ class BrandPasswordDisplay extends StatelessWidget {
       onTap: () {
         if (password.isNotEmpty) {
           copyToClipboard(password);
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Password copy successful')));
+          BrandSnackbar.showSnackBar(context, 'Password copy successful');
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please generate a password')));
+          BrandSnackbar.showSnackBar(context, 'Please generate a password');
         }
       },
       child: Card(

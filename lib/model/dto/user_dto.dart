@@ -31,7 +31,6 @@ class UserDTO {
     if (!EmailValidator.validate(email) == false) {
       return false;
     }
-
     return true;
   }
 }

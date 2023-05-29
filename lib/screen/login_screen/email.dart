@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:password_manager/constant/regex.dart';
 import 'package:password_manager/export.dart';
 
 class Email extends StatefulWidget {
@@ -24,11 +23,6 @@ class _EmailState extends State<Email> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
-        backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(
-          color: Colors.black,
-        ),
-        elevation: 0,
       ),
       body: Form(
         key: _formKey,

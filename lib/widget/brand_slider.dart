@@ -57,8 +57,9 @@ class _BrandSwitchState extends State<BrandSwitch> {
                     min: widget.minLength ?? 8,
                     max: widget.maxLength ?? 100,
                     inactiveColor: Theme.of(context).canvasColor,
+                    activeColor: Theme.of(context).colorScheme.primary,
                     // divisions: 55,
-                    divisions: 42,
+                    divisions: 30,
                     label: _passwordLength.toString(),
                     onChanged: (double value) {
                       setState(() {

@@ -1,5 +1,5 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:password_manager/AES/256_bits/256_bits_aes.dart';
 import 'package:password_manager/export.dart';
 
 // ! Capitalize first letter
@@ -11,13 +11,23 @@ String capitalizeFirstLetter(String text) {
 }
 
 // ! Encrypt field
-String encryptField(dynamic value, String key) {
-  return value != null ? AES256Bits.encrypt(value, key) : '';
+String encryptField(dynamic value, String key, BuildContext context) {
+  try {
+    return value != null ? AES256Bits.encrypt(value, key) : '';
+  } catch (e) {
+    BrandSnackbar.showSnackBar(context, e.toString());
+    return '';
+  }
 }
 
 // ! Decrypt field
-String decryptField(dynamic value, String key) {
-  return value != null ? AES256Bits.decrypt(value, key) : '';
+String decryptField(dynamic value, String key, BuildContext context) {
+  try {
+    return value != null ? AES256Bits.decrypt(value, key) : '';
+  } catch (e) {
+    BrandSnackbar.showSnackBar(context, e.toString());
+    return '';
+  }
 }
 
 // ! Copy to clipboard
