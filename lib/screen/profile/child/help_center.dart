@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
-class HelpCenter extends StatelessWidget {
+class HelpCenter extends StatefulWidget {
   const HelpCenter({super.key});
 
+  @override
+  State<HelpCenter> createState() => _HelpCenterState();
+}
+
+class _HelpCenterState extends State<HelpCenter> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Help Center'),
-        automaticallyImplyLeading: true,
-      ),
+          title: const Text('Help Center'), automaticallyImplyLeading: true),
     );
   }
 }

@@ -66,13 +66,10 @@ class FirebaseAuthService {
   }
 
   // ! Delete User
-  Future<void> deleteUser(String groupId, BuildContext context) async {
+  Future<void> deleteUser(BuildContext context) async {
     try {
-      final store = FirestoreService();
-      await store
-          .deleteGroupPassword(groupId, true, context)
-          .then((value) => store.deleteGroupPassword(groupId, false, context))
-          .then((value) => auth.currentUser?.delete());
+      auth.currentUser?.delete().then((value) =>
+          BrandSnackbar.showSnackBar(context, 'User Deleted Successfully'));
     } on FirebaseAuthException catch (e) {
       BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {

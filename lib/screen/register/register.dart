@@ -87,11 +87,11 @@ class _RegisterState extends State<Register> {
                   filled: true,
                   labelText: 'User Name',
                   hintText: 'example',
-                  suffixIcon: _emailController.text.isEmpty
+                  suffixIcon: _nameController.text.isEmpty
                       ? null
                       : IconButton(
                           onPressed: () {
-                            _emailController.clear();
+                            _nameController.clear();
                           },
                           icon: const Icon(
                             Icons.clear_rounded,

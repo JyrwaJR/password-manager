@@ -1,5 +1,7 @@
 // ignore_for_file: file_names
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
@@ -38,7 +40,7 @@ class FirestoreService {
 
   Future<void> addMasterKey(
       String uid, String groupId, BuildContext context) async {
-    final masterId = const Uuid().v1();
+    final masterId = const Uuid().v4();
     final data = await _MasterKeysCollection.where('uid', isEqualTo: uid).get();
     if (data.docs.isEmpty) {
       final key = await getUserKey(uid, context);
@@ -137,8 +139,8 @@ class FirestoreService {
     try {
       final userKey = await getUserKey(uid, context);
       if (userKey != null) {
-        final groupId = const Uuid().v1();
-        final masterId = const Uuid().v1();
+        final groupId = const Uuid().v4();
+        final masterId = const Uuid().v4();
         final masterKey = MasterKeyGenerator.generateKey();
         // ! Master
         final masterKeyDto = MasterKeyDTO(
@@ -182,8 +184,8 @@ class FirestoreService {
     try {
       final userKey = await getUserKey(uid, context);
       if (userKey != null) {
-        final groupId = const Uuid().v1();
-        final masterId = const Uuid().v1();
+        final groupId = const Uuid().v4();
+        final masterId = const Uuid().v4();
         final masterKey = MasterKeyGenerator.generateKey();
         // ! Master
         final masterKeyDto = MasterKeyDTO(
@@ -253,8 +255,6 @@ class FirestoreService {
   ) async {
     try {
       final key = await getNotesGroupKey(groupId, uid, context);
-      debugPrint(groupId);
-      debugPrint(key);
       if (key != null) {
         await _NotesCollection.doc(noteDTO.notesId)
             .set(
@@ -676,7 +676,6 @@ class FirestoreService {
               for (var doc in snapshot.docs) {
                 doc.reference.delete();
               }
-              // then delete group password
             })
             .then((value) =>
                 _MasterKeysCollection.where('groupId', isEqualTo: groupId)
@@ -692,6 +691,42 @@ class FirestoreService {
       BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
       BrandSnackbar.showSnackBar(context, e.toString());
+    }
+  }
+
+  // DeleteAccount
+  Future<void> deleteAccount(String uid, BuildContext context) async {
+    try {
+      final auth = FirebaseAuth.instance;
+      final groupsQuery =
+          await _GroupPasswordsCollection.where('uid', isEqualTo: uid);
+      final notesQuery =
+          await _NotesGroupCollection.where('uid', isEqualTo: uid);
+
+      final groupsSnapshot = await groupsQuery.get();
+      final notesSnapshot = await notesQuery.get();
+
+      for (var group in groupsSnapshot.docs) {
+        final groupId = group['groupId'];
+        await deleteGroupPassword(groupId, true, context);
+      }
+
+      for (var note in notesSnapshot.docs) {
+        final groupId = note['groupId'];
+        await deleteGroupPassword(groupId, false, context);
+      }
+      await auth.currentUser
+          ?.delete()
+          .then((value) =>
+              BrandSnackbar.showSnackBar(context, 'User deleted successfully'))
+          .then((value) => context.go('/'));
+      await _UsersCollection.doc(uid).delete();
+
+      // Redirect to home or login page
+    } on FirebaseException catch (e) {
+      debugPrint(e.message.toString());
+    } catch (e) {
+      debugPrint(e.toString());
     }
   }
 }

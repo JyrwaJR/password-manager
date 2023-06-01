@@ -66,13 +66,6 @@ class LocalAuthService {
                 SystemNavigator.pop();
               },
             ),
-            // TextButton(
-            //   onPressed: () async {
-            //     Navigator.of(context).pop();
-            //     await authenticateWithBiometrics(context);
-            //   },
-            //   child: const Text('Try Again'),
-            // ),
           ],
         );
       },
@@ -154,7 +147,7 @@ class LocalAuthService {
           localizedReason: 'Authenticate with biometrics to continue',
           options: const AuthenticationOptions(
             stickyAuth: true,
-            biometricOnly: true,
+            // biometricOnly: true,
           ));
 
       if (isAuthenticated) {

@@ -21,4 +21,14 @@ class UserModel {
     required this.uid,
     required this.key,
   });
+
+  static UserModel? fromMap(Map<String, dynamic> map) {
+    if (map == null) return null;
+    return UserModel(
+      userName: map['userName'],
+      email: map['email'],
+      uid: map['uid'],
+      key: map['key'],
+    );
+  }
 }

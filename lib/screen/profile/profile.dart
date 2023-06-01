@@ -2,164 +2,240 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
 
 class Profile extends StatefulWidget {
-  const Profile({required this.uid, super.key});
+  const Profile({
+    required this.uid,
+    super.key,
+  });
   final String uid;
   @override
   State<Profile> createState() => _ProfileState();
 }
 
 class _ProfileState extends State<Profile> {
-  onAccountSettingsTap(value) {
+  UserModel? user;
+  onAccountSettingsTap(value) async {
     if (value == 'Profile') {
       context.goNamed('update profile',
           queryParameters: <String, String>{'uid': widget.uid});
-    } else if (value == 'Account Settings') {
+    } else if (value == 'Terms & Conditions') {
       context.goNamed('account settings',
           queryParameters: <String, String>{'uid': widget.uid});
     } else if (value == 'Change Password') {
       context.goNamed('change password',
           queryParameters: <String, String>{'uid': widget.uid});
-    } else if (value == 'Master-Key') {
-      context.goNamed('master key',
-          queryParameters: <String, String>{'uid': widget.uid});
     } else if (value == 'Help Center') {
       context.goNamed('help center',
           queryParameters: <String, String>{'uid': widget.uid});
-    } else if (value == 'Report Bug') {
-      context.goNamed('report bug',
+    } else if (value == 'Logout') {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Are you sure?'),
+          content: const Text('Do you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await auth.signOut().then((value) {
+                  Navigator.pop(context);
+                  context.go('/');
+                });
+              },
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('No'),
+            ),
+          ],
+        ),
+      );
+    } else if (value == 'Delete Account') {
+      context.goNamed('account settings',
           queryParameters: <String, String>{'uid': widget.uid});
     } else {
       BrandSnackbar.showSnackBar(context, 'Try again');
     }
   }
 
+  void getUserData() async {
+    final respond = await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(widget.uid)
+        .get();
+    if (respond.data() != null) {
+      setState(() {
+        user = UserModel.fromMap(respond.data()!);
+      });
+    } else {
+      print('No user Found');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getUserData();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final auth = FirebaseAuthService();
-    final store = FirestoreService();
-    return StreamBuilder<UserModel>(
-      stream: store.getUserData(widget.uid, context),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const ProfileShimmer();
-        } else if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData && snapshot.data != null) {
-            final user = snapshot.data!;
-            return Scaffold(
-              appBar: AppBar(
-                title: const AppBarTitle(title: "PROFILE"),
-                actions: [
-                  TextButton(
-                    onPressed: () async {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Are you sure?'),
-                          content: const Text('Do you want to logout?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () async {
-                                await auth.signOut(context).then((value) {
-                                  Navigator.pop(context);
-                                  context.go('/');
-                                });
-                              },
-                              child: const Text('Yes'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text('No'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'LOGOUT',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        letterSpacing: 3,
-                        fontWeight: FontWeight.bold,
-                      ),
+    return user != null
+        ? Scaffold(
+            appBar: AppBar(
+              title: const AppBarTitle(title: "PROFILE"),
+              automaticallyImplyLeading: false,
+            ),
+            body: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: ListView(
+                children: [
+                  const SizedBox(height: 30),
+                  OneProfile(uid: widget.uid, user: user!),
+                  const SizedBox(height: 30),
+                  Text(
+                    'GENERALS',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).hintColor,
                     ),
                   ),
+                  const SizedBox(height: 5),
+                  TwoProfile(
+                    title: 'Profile',
+                    onTap: onAccountSettingsTap,
+                  ),
+                  TwoProfile(
+                    title: 'Terms & Conditions',
+                    onTap: onAccountSettingsTap,
+                  ),
+                  TwoProfile(
+                    title: 'Change Password',
+                    onTap: onAccountSettingsTap,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'OTHERS',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  TwoProfile(
+                    title: 'Help Center',
+                    onTap: onAccountSettingsTap,
+                  ),
+                  const SizedBox(height: 5),
+                  TwoProfile(
+                    title: 'Logout',
+                    onTap: onAccountSettingsTap,
+                  ),
+                  const SizedBox(height: 5),
+                  TwoProfile(
+                    title: 'Delete Account',
+                    onTap: onAccountSettingsTap,
+                  ),
                 ],
-                automaticallyImplyLeading: false,
               ),
-              body: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: ListView(
-                  children: [
-                    const SizedBox(height: 30),
-                    OneProfile(uid: widget.uid, user: user),
-                    const SizedBox(height: 30),
-                    Text(
-                      'GENERALS',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).hintColor,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    TwoProfile(
-                      title: 'Profile',
-                      onTap: onAccountSettingsTap,
-                    ),
-                    TwoProfile(
-                      title: 'Account Settings',
-                      onTap: onAccountSettingsTap,
-                    ),
-                    TwoProfile(
-                      title: 'Change Password',
-                      onTap: onAccountSettingsTap,
-                    ),
-                    TwoProfile(
-                      title: 'Master-Key',
-                      onTap: onAccountSettingsTap,
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'OTHERS',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).hintColor,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    TwoProfile(
-                      title: 'Help Center',
-                      onTap: onAccountSettingsTap,
-                    ),
-                    TwoProfile(
-                      title: 'Report Bug',
-                      onTap: onAccountSettingsTap,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          } else {
-            return const ProfileShimmer();
-          }
-        } else {
-          return const ProfileShimmer();
-        }
-      },
-    );
+            ),
+          )
+        : const ProfileShimmer();
+    // final store = FirestoreService();
+    // return StreamBuilder<UserModel>(
+    //   stream: store.getUserData(widget.uid, context),
+    //   builder: (context, snapshot) {
+    //     if (snapshot.connectionState == ConnectionState.waiting) {
+    //       return const ProfileShimmer();
+    //     } else if (snapshot.connectionState == ConnectionState.active) {
+    //       if (snapshot.hasData && snapshot.data != null) {
+    //         final user = snapshot.data!;
+    //         return Scaffold(
+    //           appBar: AppBar(
+    //             title: const AppBarTitle(title: "PROFILE"),
+    //             automaticallyImplyLeading: false,
+    //           ),
+    //           body: Container(
+    //             padding: const EdgeInsets.symmetric(horizontal: 10),
+    //             child: ListView(
+    //               children: [
+    //                 const SizedBox(height: 30),
+    //                 OneProfile(uid: widget.uid, user: user),
+    //                 const SizedBox(height: 30),
+    //                 Text(
+    //                   'GENERALS',
+    //                   maxLines: 1,
+    //                   overflow: TextOverflow.ellipsis,
+    //                   style: TextStyle(
+    //                     fontSize: 15,
+    //                     fontWeight: FontWeight.bold,
+    //                     color: Theme.of(context).hintColor,
+    //                   ),
+    //                 ),
+    //                 const SizedBox(height: 5),
+    //                 TwoProfile(
+    //                   title: 'Profile',
+    //                   onTap: onAccountSettingsTap,
+    //                 ),
+    //                 TwoProfile(
+    //                   title: 'Terms & Conditions',
+    //                   onTap: onAccountSettingsTap,
+    //                 ),
+    //                 TwoProfile(
+    //                   title: 'Change Password',
+    //                   onTap: onAccountSettingsTap,
+    //                 ),
+    //                 const SizedBox(height: 20),
+    //                 Text(
+    //                   'OTHERS',
+    //                   maxLines: 1,
+    //                   overflow: TextOverflow.ellipsis,
+    //                   style: TextStyle(
+    //                     fontSize: 15,
+    //                     fontWeight: FontWeight.bold,
+    //                     color: Theme.of(context).hintColor,
+    //                   ),
+    //                 ),
+    //                 const SizedBox(height: 5),
+    //                 TwoProfile(
+    //                   title: 'Help Center',
+    //                   onTap: onAccountSettingsTap,
+    //                 ),
+    //                 const SizedBox(height: 5),
+    //                 TwoProfile(
+    //                   title: 'Logout',
+    //                   onTap: onAccountSettingsTap,
+    //                 ),
+    //                 const SizedBox(height: 5),
+    //                 TwoProfile(
+    //                   title: 'Delete Account',
+    //                   onTap: onAccountSettingsTap,
+    //                 ),
+    //               ],
+    //             ),
+    //           ),
+    //         );
+    //       } else {
+    //         return const ProfileShimmer();
+    //       }
+    //     } else {
+    //       return const ProfileShimmer();
+    //     }
+    //   },
+    // );
   }
 }
 

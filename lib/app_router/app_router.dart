@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -94,7 +96,9 @@ class AppRouter {
               GoRoute(
                 path: 'account-settings',
                 name: 'account settings',
-                builder: (context, state) => const AccountSettings(),
+                builder: (context, state) => AccountSettings(
+                  uid: state.queryParameters['uid']!,
+                ),
               ),
               GoRoute(
                 path: 'change-password',

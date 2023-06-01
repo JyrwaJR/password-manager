@@ -103,68 +103,65 @@ class _ChangePasswordState extends State<ChangePassword> {
               height: 55,
               width: MediaQuery.of(context).size.width,
               child: BrandButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('Change Password'),
-                          content: const Text(
-                              'Are you sure you want to change your password?'),
-                          actions: [
-                            TextButton(
-                                onPressed: () async {
-                                  final auth = FirebaseAuthService();
-                                  await auth
-                                      .resetPassword(
-                                          _emailController.text, context)
-                                      .then(
-                                        (value) => showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text('Opp!'),
-                                            content: Text(
-                                                'Email send to your email address ${_emailController.text}'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  _emailController.clear();
-                                                  _formKey.currentState!
-                                                      .reset();
-                                                  context.go('/profile');
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text('Ok'),
-                                              ),
-                                            ],
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('Change Password'),
+                            content: const Text(
+                                'Are you sure you want to change your password?'),
+                            actions: [
+                              TextButton(
+                                  onPressed: () async {
+                                    final auth = FirebaseAuthService();
+                                    await auth
+                                        .resetPassword(
+                                            _emailController.text, context)
+                                        .then(
+                                          (value) => showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text('Opp!'),
+                                              content: Text(
+                                                  'Email send to your email address ${_emailController.text}'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    _emailController.clear();
+                                                    _formKey.currentState!
+                                                        .reset();
+                                                    context.go('/profile');
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text('Ok'),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                  if (!mounted) {
-                                    return;
-                                  }
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('Yes')),
-                            TextButton(
-                                onPressed: () {
-                                  _formKey.currentState!.reset();
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('No'))
-                          ],
-                        );
-                      },
-                    );
-                  }
-                },
-                title: 'Send',
-              ),
+                                        );
+                                    if (!mounted) {
+                                      return;
+                                    }
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text('Yes')),
+                              TextButton(
+                                  onPressed: () {
+                                    _formKey.currentState!.reset();
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('No'))
+                            ],
+                          );
+                        },
+                      );
+                    }
+                  },
+                  title: 'Send'),
             ),
-            const SizedBox(
-              height: 30,
-            ),
+            const SizedBox(height: 30),
           ],
         ),
       ),
