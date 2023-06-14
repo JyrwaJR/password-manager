@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -101,11 +99,6 @@ class AppRouter {
                 ),
               ),
               GoRoute(
-                path: 'change-password',
-                name: 'change password',
-                builder: (context, state) => const ChangePassword(),
-              ),
-              GoRoute(
                 path: 'master-key',
                 name: 'master key',
                 builder: (context, state) => const MasterKey(),
@@ -143,19 +136,6 @@ class AppRouter {
           }
           return null;
         },
-        routes: [
-          GoRoute(
-            path: 'register',
-            name: 'register',
-            builder: (context, state) => const Register(),
-          ),
-          GoRoute(
-            path: 'password',
-            name: 'password',
-            builder: (context, state) =>
-                Password(email: state.queryParameters['email'] ?? ''),
-          ),
-        ],
       ),
     ],
   );

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:password_manager/export.dart';
@@ -33,4 +36,14 @@ String decryptField(dynamic value, String key, BuildContext context) {
 // ! Copy to clipboard
 void copyToClipboard(String text) {
   Clipboard.setData(ClipboardData(text: text));
+}
+
+String generateAESKeyFromEmail(String email) {
+  final emailBytes = utf8.encode(email);
+  final hashBytes = sha256.convert(emailBytes).bytes;
+  final aesKeyBytes = hashBytes.sublist(0, 32);
+  final aesKeyHex = aesKeyBytes
+      .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+      .join('');
+  return aesKeyHex;
 }

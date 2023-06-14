@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:password_manager/export.dart';
@@ -20,14 +20,8 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   UserModel? user;
   onAccountSettingsTap(value) async {
-    if (value == 'Profile') {
-      context.goNamed('update profile',
-          queryParameters: <String, String>{'uid': widget.uid});
-    } else if (value == 'Terms & Conditions') {
+    if (value == 'Terms & Conditions') {
       context.goNamed('account settings',
-          queryParameters: <String, String>{'uid': widget.uid});
-    } else if (value == 'Change Password') {
-      context.goNamed('change password',
           queryParameters: <String, String>{'uid': widget.uid});
     } else if (value == 'Help Center') {
       context.goNamed('help center',
@@ -41,10 +35,12 @@ class _ProfileState extends State<Profile> {
           actions: [
             TextButton(
               onPressed: () async {
-                await auth.signOut().then((value) {
-                  Navigator.pop(context);
-                  context.go('/');
-                });
+                final _auth = FirebaseAuthService();
+                await _auth.googleSignOut(context).then(
+                  (value) {
+                    Navigator.pop(context);
+                  },
+                );
               },
               child: const Text('Yes'),
             ),
@@ -65,29 +61,10 @@ class _ProfileState extends State<Profile> {
     }
   }
 
-  void getUserData() async {
-    final respond = await FirebaseFirestore.instance
-        .collection('Users')
-        .doc(widget.uid)
-        .get();
-    if (respond.data() != null) {
-      setState(() {
-        user = UserModel.fromMap(respond.data()!);
-      });
-    } else {
-      print('No user Found');
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getUserData();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return user != null
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.uid != null
         ? Scaffold(
             appBar: AppBar(
               title: const AppBarTitle(title: "PROFILE"),
@@ -112,15 +89,7 @@ class _ProfileState extends State<Profile> {
                   ),
                   const SizedBox(height: 5),
                   TwoProfile(
-                    title: 'Profile',
-                    onTap: onAccountSettingsTap,
-                  ),
-                  TwoProfile(
                     title: 'Terms & Conditions',
-                    onTap: onAccountSettingsTap,
-                  ),
-                  TwoProfile(
-                    title: 'Change Password',
                     onTap: onAccountSettingsTap,
                   ),
                   const SizedBox(height: 20),
@@ -154,88 +123,6 @@ class _ProfileState extends State<Profile> {
             ),
           )
         : const ProfileShimmer();
-    // final store = FirestoreService();
-    // return StreamBuilder<UserModel>(
-    //   stream: store.getUserData(widget.uid, context),
-    //   builder: (context, snapshot) {
-    //     if (snapshot.connectionState == ConnectionState.waiting) {
-    //       return const ProfileShimmer();
-    //     } else if (snapshot.connectionState == ConnectionState.active) {
-    //       if (snapshot.hasData && snapshot.data != null) {
-    //         final user = snapshot.data!;
-    //         return Scaffold(
-    //           appBar: AppBar(
-    //             title: const AppBarTitle(title: "PROFILE"),
-    //             automaticallyImplyLeading: false,
-    //           ),
-    //           body: Container(
-    //             padding: const EdgeInsets.symmetric(horizontal: 10),
-    //             child: ListView(
-    //               children: [
-    //                 const SizedBox(height: 30),
-    //                 OneProfile(uid: widget.uid, user: user),
-    //                 const SizedBox(height: 30),
-    //                 Text(
-    //                   'GENERALS',
-    //                   maxLines: 1,
-    //                   overflow: TextOverflow.ellipsis,
-    //                   style: TextStyle(
-    //                     fontSize: 15,
-    //                     fontWeight: FontWeight.bold,
-    //                     color: Theme.of(context).hintColor,
-    //                   ),
-    //                 ),
-    //                 const SizedBox(height: 5),
-    //                 TwoProfile(
-    //                   title: 'Profile',
-    //                   onTap: onAccountSettingsTap,
-    //                 ),
-    //                 TwoProfile(
-    //                   title: 'Terms & Conditions',
-    //                   onTap: onAccountSettingsTap,
-    //                 ),
-    //                 TwoProfile(
-    //                   title: 'Change Password',
-    //                   onTap: onAccountSettingsTap,
-    //                 ),
-    //                 const SizedBox(height: 20),
-    //                 Text(
-    //                   'OTHERS',
-    //                   maxLines: 1,
-    //                   overflow: TextOverflow.ellipsis,
-    //                   style: TextStyle(
-    //                     fontSize: 15,
-    //                     fontWeight: FontWeight.bold,
-    //                     color: Theme.of(context).hintColor,
-    //                   ),
-    //                 ),
-    //                 const SizedBox(height: 5),
-    //                 TwoProfile(
-    //                   title: 'Help Center',
-    //                   onTap: onAccountSettingsTap,
-    //                 ),
-    //                 const SizedBox(height: 5),
-    //                 TwoProfile(
-    //                   title: 'Logout',
-    //                   onTap: onAccountSettingsTap,
-    //                 ),
-    //                 const SizedBox(height: 5),
-    //                 TwoProfile(
-    //                   title: 'Delete Account',
-    //                   onTap: onAccountSettingsTap,
-    //                 ),
-    //               ],
-    //             ),
-    //           ),
-    //         );
-    //       } else {
-    //         return const ProfileShimmer();
-    //       }
-    //     } else {
-    //       return const ProfileShimmer();
-    //     }
-    //   },
-    // );
   }
 }
 
@@ -293,7 +180,7 @@ class OneProfile extends StatelessWidget {
   });
 
   final String uid;
-  final UserModel user;
+  final User user;
 
   @override
   Widget build(BuildContext context) {
@@ -342,7 +229,7 @@ class OneProfile extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            capitalizeFirstLetter(user.userName),
+            capitalizeFirstLetter(user.displayName!),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -352,7 +239,7 @@ class OneProfile extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            user.email,
+            user.email ?? '',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(

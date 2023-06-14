@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:password_manager/export.dart';
 
 class FirebaseAuthService {
@@ -18,53 +20,6 @@ class FirebaseAuthService {
     return auth.authStateChanges().map((User? user) => _userFromFirebase(user));
   }
 
-// ! Sign Out
-  Future<void> signOut(BuildContext context) async {
-    try {
-      await auth.signOut();
-    } on FirebaseAuthException catch (e) {
-      BrandSnackbar.showSnackBar(context, e.message!);
-    } catch (e) {
-      BrandSnackbar.showSnackBar(context, e.toString());
-    }
-  }
-
-// ! Sign in with Email and Password
-  Future<AuthUser?> signInWithEmailAndPassword(
-      String email, String password, BuildContext context) async {
-    try {
-      final UserCredential result = await auth.signInWithEmailAndPassword(
-          email: email, password: password);
-      final User? user = result.user;
-      return _userFromFirebase(user!);
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        BrandSnackbar.showSnackBar(
-            context, 'No user found for that email. Please register');
-      } else if (e.code == 'wrong-password') {
-        BrandSnackbar.showSnackBar(context, 'Password is invalid.');
-      }
-    }
-    return null;
-  }
-
-// ! Register with Email and Password
-  Future<AuthUser?> createUserWithEmailAndPassword(
-      String password, BuildContext context, String email) async {
-    try {
-      final UserCredential result = await auth.createUserWithEmailAndPassword(
-          email: email, password: password);
-      final User? user = result.user;
-      return _userFromFirebase(user!);
-    } on FirebaseAuthException catch (e) {
-      BrandSnackbar.showSnackBar(context, e.message.toString());
-      return null;
-    } catch (e) {
-      BrandSnackbar.showSnackBar(context, e.toString());
-      return null;
-    }
-  }
-
   // ! Delete User
   Future<void> deleteUser(BuildContext context) async {
     try {
@@ -77,25 +32,60 @@ class FirebaseAuthService {
     }
   }
 
-  // ! Reset Password
-  Future<void> resetPassword(String email, BuildContext context) async {
+  // Create an instance of the Google SignIn service
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  // final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  Future<AuthUser?> signInWithGoogle(BuildContext context) async {
     try {
-      await auth.sendPasswordResetEmail(email: email);
+      // Sign in to Google
+      final GoogleSignInAccount? googleSignInAccount =
+          await _googleSignIn.signIn();
+      if (googleSignInAccount != null) {
+        // Obtain the authentication credentials for the user
+        final GoogleSignInAuthentication googleAuth =
+            await googleSignInAccount.authentication;
+
+        // Create the Firebase credential using the obtained Google authentication credentials
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        // Sign in to Firebase using the credential
+        final UserCredential userCredential =
+            await auth.signInWithCredential(credential);
+        final User? user = userCredential.user;
+        if (user != null) {
+          final _store = FirestoreService();
+
+          await _store.registerUser(
+              UserDTO(
+                userName: user.displayName ?? '',
+                email: user.email ?? '',
+                uid: user.uid,
+              ),
+              context);
+          return _userFromFirebase(user);
+        }
+      }
     } on FirebaseAuthException catch (e) {
       BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
+      // Handle any errors that occur during the sign-in process
       BrandSnackbar.showSnackBar(context, e.toString());
+      print('Error signing in with Google: $e');
     }
+
+    return null;
   }
 
-  // ! Update Email
-  Future<void> updateEmail(String email, BuildContext context) async {
+  Future<void> googleSignOut(BuildContext context) async {
     try {
-      await auth.currentUser!.updateEmail(email);
-    } on FirebaseAuthException catch (e) {
-      BrandSnackbar.showSnackBar(context, e.message.toString());
+      await _googleSignIn.signOut(); // Sign out from Google
+      await auth.signOut().then(
+          (value) => context.go('/')); // Sign out from Firebase Authentication
     } catch (e) {
       BrandSnackbar.showSnackBar(context, e.toString());
+      print('Error signing out: $e');
     }
   }
 }

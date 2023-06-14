@@ -27,10 +27,16 @@ class FirestoreService {
   Future<void> registerUser(UserDTO userDTO, BuildContext context) async {
     try {
       final masterKey = MasterKeyGenerator.generateKey();
+      final findUser = await _UsersCollection.doc(userDTO.uid).get();
+      if (findUser.data() != null) {
+        BrandSnackbar.showSnackBar(context, 'Welcome back');
+        return;
+      }
       await _UsersCollection.doc(userDTO.uid)
           .set(userDTO.toMap(masterKey))
           .then((value) => BrandSnackbar.showSnackBar(
               context, 'User registered successfully!'));
+      return;
     } on FirebaseException catch (e) {
       BrandSnackbar.showSnackBar(context, e.message ?? 'something went wrong');
     } catch (e) {
@@ -724,9 +730,9 @@ class FirestoreService {
 
       // Redirect to home or login page
     } on FirebaseException catch (e) {
-      debugPrint(e.message.toString());
+      BrandSnackbar.showSnackBar(context, e.message.toString());
     } catch (e) {
-      debugPrint(e.toString());
+      BrandSnackbar.showSnackBar(context, e.toString());
     }
   }
 }

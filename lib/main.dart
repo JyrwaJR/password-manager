@@ -21,9 +21,6 @@ class MyApp extends StatelessWidget {
         Provider<FirebaseAuthService>(
           create: (_) => FirebaseAuthService(),
         ),
-        // ChangeNotifierProvider<LocalAuthService>(
-        //   create: (_) => LocalAuthService(),
-        // )
       ],
       child: MaterialApp.router(
         theme: ThemeData(
@@ -31,9 +28,9 @@ class MyApp extends StatelessWidget {
             builders: {
               TargetPlatform.android: CupertinoPageTransitionsBuilder(),
               TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-              TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
-              TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-              TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+              // TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+              // TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+              // TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
             },
           ),
           useMaterial3: true,

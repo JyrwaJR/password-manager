@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 class GeneratePasswordService {
@@ -25,8 +24,8 @@ class GeneratePasswordService {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Oops!'),
-          content: const Text(
-              'You must select at least one option. From setting below'),
+          content: const Text('''You must select at least one option. 
+              From setting below'''),
           actions: [
             TextButton(
               onPressed: () {
